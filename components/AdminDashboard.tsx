@@ -58,7 +58,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [rejectionDetails, setRejectionDetails] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [feedbackMessage, setFeedbackMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
   
+  useEffect(() => {
+    if (feedbackMessage) {
+      const timer = setTimeout(() => setFeedbackMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedbackMessage]);
+
   // States for blocking dates
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [blockDate, setBlockDate] = useState(format(addDays(new Date(), 1), 'yyyy-MM-dd'));
@@ -131,25 +139,28 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setNewUserName('');
       setNewUserEmail('');
       setNewUserPassword('');
-      alert("Membro adicionado com sucesso! Ele já pode logar com e-mail e senha.");
+      setFeedbackMessage({ text: "Membro adicionado com sucesso!", type: 'success' });
     } catch (err: any) {
       handleFirestoreError(err, OperationType.WRITE, 'users');
-      alert(`Erro ao adicionar membro: ${err.message}`);
+      setFeedbackMessage({ text: `Erro ao adicionar membro: ${err.message}`, type: 'error' });
     } finally {
       setIsProcessing(false);
     }
   };
 
+  const [showUserRemoveConfirm, setShowUserRemoveConfirm] = useState<string | null>(null);
+
   const handleRemoveUser = async (id: string) => {
-    if (window.confirm('Remover este membro da equipe?')) {
-      setIsProcessing(true);
-      try {
-        await deleteDoc(doc(db, 'users', id));
-      } catch (err) {
-        handleFirestoreError(err, OperationType.DELETE, `users/${id}`);
-      } finally {
-        setIsProcessing(false);
-      }
+    setIsProcessing(true);
+    try {
+      await deleteDoc(doc(db, 'users', id));
+      setShowUserRemoveConfirm(null);
+      setFeedbackMessage({ text: "Membro removido com sucesso!", type: 'success' });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `users/${id}`);
+      setFeedbackMessage({ text: "Erro ao remover membro.", type: 'error' });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -173,9 +184,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       });
 
       setSelectedBooking(null);
+      setFeedbackMessage({ text: "Agendamento confirmado com sucesso!", type: 'success' });
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `bookings/${id}`);
-      alert("Erro ao confirmar agendamento no servidor.");
+      setFeedbackMessage({ text: "Erro ao confirmar agendamento.", type: 'error' });
     } finally {
       setIsProcessing(false);
     }
@@ -206,9 +218,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setSelectedBooking(null);
       setRejectionReason('');
       setRejectionDetails('');
+      setFeedbackMessage({ text: "Agendamento rejeitado com sucesso!", type: 'success' });
     } catch (err) {
       handleFirestoreError(err, OperationType.UPDATE, `bookings/${selectedBooking.id}`);
-      alert("Erro ao rejeitar agendamento no servidor.");
+      setFeedbackMessage({ text: "Erro ao rejeitar agendamento.", type: 'error' });
     } finally {
       setIsProcessing(false);
     }
@@ -220,9 +233,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       await deleteDoc(doc(db, 'bookings', id));
       setSelectedBooking(null);
       setShowDeleteConfirm(null);
+      setFeedbackMessage({ text: "Registro excluído com sucesso!", type: 'success' });
     } catch (err) {
       handleFirestoreError(err, OperationType.DELETE, `bookings/${id}`);
-      alert("Erro ao excluir registro no servidor.");
+      setFeedbackMessage({ text: "Erro ao excluir registro.", type: 'error' });
     } finally {
       setIsProcessing(false);
     }
@@ -233,7 +247,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (!blockDate || !blockReason) return;
 
     if (blockedDates.some(b => b.dateString === blockDate)) {
-      alert("Esta data já está bloqueada.");
+      setFeedbackMessage({ text: "Esta data já está bloqueada.", type: 'error' });
       return;
     }
 
@@ -250,25 +264,28 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       
       setShowBlockModal(false);
       setBlockReason('');
+      setFeedbackMessage({ text: "Data bloqueada com sucesso!", type: 'success' });
     } catch (err) {
       handleFirestoreError(err, OperationType.WRITE, 'blocked_dates');
-      alert("Erro ao bloquear data no servidor.");
+      setFeedbackMessage({ text: "Erro ao bloquear data.", type: 'error' });
     } finally {
       setIsProcessing(false);
     }
   };
 
+  const [showBlockRemoveConfirm, setShowBlockRemoveConfirm] = useState<string | null>(null);
+
   const handleRemoveBlock = async (dateString: string) => {
-    if (window.confirm('Deseja desbloquear esta data?')) {
-      setIsProcessing(true);
-      try {
-        await deleteDoc(doc(db, 'blocked_dates', dateString));
-      } catch (err) {
-        handleFirestoreError(err, OperationType.DELETE, `blocked_dates/${dateString}`);
-        alert("Erro ao remover bloqueio no servidor.");
-      } finally {
-        setIsProcessing(false);
-      }
+    setIsProcessing(true);
+    try {
+      await deleteDoc(doc(db, 'blocked_dates', dateString));
+      setShowBlockRemoveConfirm(null);
+      setFeedbackMessage({ text: "Data desbloqueada com sucesso!", type: 'success' });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.DELETE, `blocked_dates/${dateString}`);
+      setFeedbackMessage({ text: "Erro ao remover bloqueio.", type: 'error' });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -310,221 +327,245 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-100/80">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 px-8 h-20 flex items-center justify-between shadow-sm">
-        <div className="flex items-center space-x-4">
-          <div className="bg-[#1e40af] p-2 rounded-xl text-white shadow-lg shadow-blue-900/20 rotate-3 overflow-hidden">
+    <div className="flex min-h-screen bg-slate-50">
+      {/* Sidebar Navigation */}
+      <aside className="w-72 bg-white border-r border-slate-200 flex flex-col sticky top-0 h-screen shrink-0">
+        <div className="p-8 flex items-center space-x-4 border-b border-slate-100">
+          <div className="bg-[#1e40af] p-2 rounded-xl text-white shadow-lg shadow-blue-900/20 rotate-3 overflow-hidden shrink-0">
             <img src="https://i.postimg.cc/x881K4FF/Logo_emprestimo.png" alt="Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
           </div>
           <div>
-            <h1 className="font-black text-slate-900 uppercase tracking-tighter text-base leading-none">Painel de Controle</h1>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Gestão de Visitas Guiadas</p>
+            <h1 className="font-black text-slate-900 uppercase tracking-tighter text-sm leading-none">Painel</h1>
+            <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-1">Gestão de Visitas</p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-6">
-          <button 
-            onClick={onLogout} 
-            className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center"
-          >
-            <LogOut size={14} className="mr-2" /> Sair
-          </button>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto p-8 space-y-8">
-        {/* Tabs Navigation */}
-        <div className="flex flex-wrap gap-2 bg-white p-2 rounded-[2rem] shadow-sm border border-slate-200">
+        <nav className="flex-grow p-6 space-y-2 overflow-y-auto">
           {(['pending', 'confirmed', 'rejected', 'history', 'blocked', 'team'] as const).filter(t => t !== 'team' || isMasterAdmin).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-[#1e40af] text-white shadow-lg shadow-blue-900/20' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'}`}
+              className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-[#1e40af] text-white shadow-lg shadow-blue-900/20' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'}`}
             >
-              {getTabIcon(tab)}
-              <span>{getTabLabel(tab)}</span>
+              <div className="flex items-center space-x-3">
+                {getTabIcon(tab)}
+                <span>{getTabLabel(tab)}</span>
+              </div>
               {tab === 'pending' && bookings.filter(b => b.status === 'pending').length > 0 && (
-                <span className="ml-2 bg-white text-[#1e40af] px-1.5 py-0.5 rounded-full text-[8px]">
+                <span className={`px-2 py-0.5 rounded-full text-[8px] ${activeTab === tab ? 'bg-white text-[#1e40af]' : 'bg-[#1e40af] text-white'}`}>
                   {bookings.filter(b => b.status === 'pending').length}
                 </span>
               )}
             </button>
           ))}
+        </nav>
+
+        <div className="p-6 border-t border-slate-100">
+          <button 
+            onClick={onLogout} 
+            className="w-full bg-slate-900 text-white px-5 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center justify-center"
+          >
+            <LogOut size={14} className="mr-2" /> Sair do Painel
+          </button>
         </div>
+      </aside>
 
-        {activeTab === 'blocked' && (
-          <div className="flex justify-end">
-            <button 
-              onClick={() => setShowBlockModal(true)}
-              className="bg-[#1e40af] text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-blue-900/20 flex items-center"
-            >
-              <Plus size={16} className="mr-2" /> Bloquear Nova Data
-            </button>
-          </div>
-        )}
-
-        {activeTab === 'team' && isMasterAdmin && (
-          <div className="flex justify-end">
-            <button 
-              onClick={() => setShowAddUserModal(true)}
-              className="bg-[#1e40af] text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-blue-900/20 flex items-center"
-            >
-              <UserPlus size={16} className="mr-2" /> Adicionar Membro
-            </button>
-          </div>
-        )}
-
-        {/* Content Area */}
-        <div className="space-y-6">
-          {activeTab === 'team' && isMasterAdmin ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {teamMembers.map((member) => (
-                <div key={member.id} className="bg-white border border-slate-200 rounded-3xl p-6 space-y-4 relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button 
-                      onClick={() => handleRemoveUser(member.id)}
-                      className="p-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-blue-50 p-2.5 rounded-xl text-blue-600">
-                      <User size={20} />
-                    </div>
-                    <div>
-                      <p className="text-lg font-black text-slate-800 tracking-tighter">{member.name}</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{member.role === 'admin' ? 'Administrador' : 'Equipe'}</p>
-                    </div>
-                  </div>
-                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">E-mail</p>
-                    <p className="text-sm text-slate-700 font-bold truncate">{member.email}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : activeTab === 'blocked' ? (
-            blockedDates.length === 0 ? (
-              <div className="bg-white border-2 border-dashed border-slate-200 rounded-[2.5rem] py-24 flex flex-col items-center justify-center text-slate-400">
-                 <CalendarX size={64} className="mb-6 opacity-10" />
-                 <p className="font-bold uppercase tracking-widest text-xs">Nenhuma data bloqueada manualmente</p>
+      {/* Main Content Area */}
+      <div className="flex-grow flex flex-col min-w-0">
+        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 h-20 px-10 flex items-center justify-between sticky top-0 z-40">
+          <div className="flex items-center space-x-4">
+            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">
+              {getTabLabel(activeTab)}
+            </h2>
+            {feedbackMessage && (
+              <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest animate-in fade-in slide-in-from-left-2 duration-300 ${
+                feedbackMessage.type === 'success' ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-red-50 text-red-600 border border-red-100'
+              }`}>
+                {feedbackMessage.text}
               </div>
-            ) : (
+            )}
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            {activeTab === 'blocked' && (
+              <button 
+                onClick={() => setShowBlockModal(true)}
+                className="bg-[#1e40af] text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-blue-900/20 flex items-center"
+              >
+                <Plus size={16} className="mr-2" /> Bloquear Data
+              </button>
+            )}
+
+            {activeTab === 'team' && isMasterAdmin && (
+              <button 
+                onClick={() => setShowAddUserModal(true)}
+                className="bg-[#1e40af] text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-blue-900/20 flex items-center"
+              >
+                <UserPlus size={16} className="mr-2" /> Adicionar Membro
+              </button>
+            )}
+          </div>
+        </header>
+
+        <main className="p-10">
+          <div className="space-y-6">
+            {activeTab === 'team' && isMasterAdmin ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {blockedDates.sort((a, b) => new Date(a.dateString).getTime() - new Date(b.dateString).getTime()).map((block) => (
-                  <div key={block.dateString} className="bg-white border border-slate-200 rounded-3xl p-6 space-y-4 relative overflow-hidden group">
+                {teamMembers.map((member) => (
+                  <div key={member.id} className="bg-white border border-slate-200 rounded-3xl p-6 space-y-4 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
-                        onClick={() => handleRemoveBlock(block.dateString)}
+                        onClick={() => setShowUserRemoveConfirm(member.id)}
                         className="p-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors"
                       >
                         <Trash2 size={16} />
                       </button>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <div className="bg-amber-50 p-2.5 rounded-xl text-amber-600">
-                        <AlertTriangle size={20} />
+                      <div className="bg-blue-50 p-2.5 rounded-xl text-blue-600">
+                        <User size={20} />
                       </div>
                       <div>
-                        <p className="text-lg font-black text-slate-800 tracking-tighter">
-                          {format(new Date(block.dateString + 'T12:00:00'), 'dd/MM/yyyy')}
-                        </p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Data Bloqueada</p>
+                        <p className="text-lg font-black text-slate-800 tracking-tighter">{member.name}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{member.role === 'admin' ? 'Administrador' : 'Equipe'}</p>
                       </div>
                     </div>
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Motivo</p>
-                      <p className="text-sm text-slate-700 font-bold">{block.reason}</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">E-mail</p>
+                      <p className="text-sm text-slate-700 font-bold truncate">{member.email}</p>
                     </div>
                   </div>
                 ))}
               </div>
-            )
-          ) : filteredBookings.length === 0 ? (
-            <div className="bg-white border-2 border-dashed border-slate-200 rounded-[2.5rem] py-24 flex flex-col items-center justify-center text-slate-400">
-               <Search size={64} className="mb-6 opacity-10" />
-               <p className="font-bold uppercase tracking-widest text-xs">Nenhum registro em "{getTabLabel(activeTab)}"</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-6">
-              {filteredBookings.map((req) => (
-                <div 
-                  key={req.id} 
-                  onClick={() => setSelectedBooking(req)}
-                  className="bg-white border border-slate-200 rounded-[2rem] p-6 hover:shadow-xl hover:shadow-slate-200/50 hover:border-slate-300 transition-all cursor-pointer group relative overflow-hidden"
-                >
-                  <div className={`absolute left-0 top-0 bottom-0 w-2 ${
-                    req.status === 'confirmed' ? 'bg-green-500' : 
-                    req.status === 'rejected' ? 'bg-blue-400' : 'bg-blue-600'
-                  }`}></div>
-
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="space-y-4 flex-grow">
+            ) : activeTab === 'blocked' ? (
+              blockedDates.length === 0 ? (
+                <div className="bg-white border-2 border-dashed border-slate-200 rounded-[2.5rem] py-24 flex flex-col items-center justify-center text-slate-400">
+                   <CalendarX size={64} className="mb-6 opacity-10" />
+                   <p className="font-bold uppercase tracking-widest text-xs">Nenhuma data bloqueada manualmente</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {blockedDates.sort((a, b) => new Date(a.dateString).getTime() - new Date(b.dateString).getTime()).map((block) => (
+                    <div key={block.dateString} className="bg-white border border-slate-200 rounded-3xl p-6 space-y-4 relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => setShowBlockRemoveConfirm(block.dateString)}
+                          className="p-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                       <div className="flex items-center space-x-3">
-                        <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center ${
-                          req.status === 'confirmed' ? 'bg-green-50 text-green-700' : 
-                          req.status === 'rejected' ? 'bg-blue-50 text-blue-700' : 'bg-blue-50 text-blue-700'
-                        }`}>
-                          {req.status === 'confirmed' ? <><CheckCircle2 size={10} className="mr-1"/> Confirmado</> : 
-                           req.status === 'rejected' ? <><XCircle size={10} className="mr-1"/> Rejeitado</> : 
-                           <><Clock size={10} className="mr-1"/> Aguardando</>}
-                        </span>
-                        <span className="text-slate-300 text-[9px] font-black uppercase tracking-widest">
-                          ID: {req.id.substring(0, 8)} • Solicitado em {format(new Date(req.createdAt), "dd/MM 'às' HH:mm", { locale: ptBR })}
-                        </span>
-                      </div>
-                      
-                      <div className="flex flex-col md:flex-row md:items-center gap-6">
-                        <div className="flex items-center text-slate-900 font-black text-xl tracking-tighter">
-                          <CalendarIcon size={20} className="mr-3 text-[#1e40af]" />
-                          {format(new Date(req.dateString + 'T12:00:00'), 'dd/MM/yyyy')} 
-                          <span className="mx-2 text-slate-300 font-light">—</span>
-                          <span className="text-[#1e40af]">{req.slot.start}</span>
+                        <div className="bg-amber-50 p-2.5 rounded-xl text-amber-600">
+                          <AlertTriangle size={20} />
                         </div>
-                        <div className="flex items-center text-slate-700 font-bold bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
-                          <Building2 size={18} className="mr-3 text-slate-400" />
-                          {req.institutionName}
+                        <div>
+                          <p className="text-lg font-black text-slate-800 tracking-tighter">
+                            {format(new Date(block.dateString + 'T12:00:00'), 'dd/MM/yyyy')}
+                          </p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Data Bloqueada</p>
                         </div>
                       </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs font-bold text-slate-500 uppercase tracking-widest">
-                         <div className="flex items-center"><User size={14} className="mr-2 text-slate-300" /> {req.responsibleName}</div>
-                         <div className="flex items-center"><Mail size={14} className="mr-2 text-slate-300" /> {req.email}</div>
-                         <div className="flex items-center"><Users size={14} className="mr-2 text-slate-300" /> {req.quantity} pessoas</div>
+                      <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Motivo</p>
+                        <p className="text-sm text-slate-700 font-bold">{block.reason}</p>
                       </div>
                     </div>
+                  ))}
+                </div>
+              )
+            ) : filteredBookings.length === 0 ? (
+              <div className="bg-white border-2 border-dashed border-slate-200 rounded-[2.5rem] py-24 flex flex-col items-center justify-center text-slate-400">
+                 <Search size={64} className="mb-6 opacity-10" />
+                 <p className="font-bold uppercase tracking-widest text-xs">Nenhum registro em "{getTabLabel(activeTab)}"</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6">
+                {filteredBookings.map((req) => (
+                  <div 
+                    key={req.id} 
+                    onClick={() => setSelectedBooking(req)}
+                    className="bg-white border border-slate-200 rounded-[2rem] p-6 hover:shadow-xl hover:shadow-slate-200/50 hover:border-slate-300 transition-all cursor-pointer group relative overflow-hidden"
+                  >
+                    <div className={`absolute left-0 top-0 bottom-0 w-2 ${
+                      req.status === 'confirmed' ? 'bg-green-500' : 
+                      req.status === 'rejected' ? 'bg-blue-400' : 'bg-blue-600'
+                    }`}></div>
 
-                    <div className="flex items-center gap-3">
-                      {activeTab === 'pending' && (
-                        <div className="flex space-x-2">
-                           <button 
-                             disabled={isProcessing}
-                             onClick={(e) => { e.stopPropagation(); handleConfirm(req.id); }}
-                             className="bg-green-500 text-white p-3 rounded-xl hover:bg-green-600 transition-all shadow-lg shadow-green-500/20 disabled:bg-slate-200"
-                           >
-                             {isProcessing ? <Loader2 className="animate-spin" size={20} /> : <Check size={20} />}
-                           </button>
-                           <button 
-                             disabled={isProcessing}
-                             onClick={(e) => { e.stopPropagation(); setSelectedBooking(req); setShowRejectionModal(true); }}
-                             className="bg-blue-400 text-white p-3 rounded-xl hover:bg-blue-500 transition-all shadow-lg shadow-blue-400/20 disabled:bg-slate-200"
-                           >
-                             <X size={20} />
-                           </button>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                      <div className="space-y-4 flex-grow">
+                        <div className="flex items-center space-x-3">
+                          <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center ${
+                            req.status === 'confirmed' ? 'bg-green-50 text-green-700' : 
+                            req.status === 'rejected' ? 'bg-blue-50 text-blue-700' : 'bg-blue-50 text-blue-700'
+                          }`}>
+                            {req.status === 'confirmed' ? <><CheckCircle2 size={10} className="mr-1"/> Confirmado</> : 
+                             req.status === 'rejected' ? <><XCircle size={10} className="mr-1"/> Rejeitado</> : 
+                             <><Clock size={10} className="mr-1"/> Aguardando</>}
+                          </span>
+                          <span className="text-slate-300 text-[9px] font-black uppercase tracking-widest">
+                            ID: {req.id.substring(0, 8)} • Solicitado em {format(new Date(req.createdAt), "dd/MM 'às' HH:mm", { locale: ptBR })}
+                          </span>
                         </div>
-                      )}
-                      <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-slate-100 text-slate-400 group-hover:bg-[#1e40af] group-hover:text-white transition-all shadow-inner">
-                         <ChevronRight size={24} />
+                        
+                        <div className="flex flex-col md:flex-row md:items-center gap-6">
+                          <div className="flex items-center text-slate-900 font-black text-xl tracking-tighter">
+                            <CalendarIcon size={20} className="mr-3 text-[#1e40af]" />
+                            {format(new Date(req.dateString + 'T12:00:00'), 'dd/MM/yyyy')} 
+                            <span className="mx-2 text-slate-300 font-light">—</span>
+                            <span className="text-[#1e40af]">{req.slot.start}</span>
+                          </div>
+                          <div className="flex items-center text-slate-700 font-bold bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                            <Building2 size={18} className="mr-3 text-slate-400" />
+                            {req.institutionName}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                           <div className="flex items-center"><User size={14} className="mr-2 text-slate-300" /> {req.responsibleName}</div>
+                           <div className="flex items-center"><Mail size={14} className="mr-2 text-slate-300" /> {req.email}</div>
+                           <div className="flex items-center"><Users size={14} className="mr-2 text-slate-300" /> {req.quantity} pessoas</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        {activeTab === 'pending' && (
+                          <div className="flex space-x-2">
+                             <button 
+                               disabled={isProcessing}
+                               onClick={(e) => { e.stopPropagation(); handleConfirm(req.id); }}
+                               className="bg-green-500 text-white p-3 rounded-xl hover:bg-green-600 transition-all shadow-lg shadow-green-500/20 disabled:bg-slate-200"
+                             >
+                               {isProcessing ? <Loader2 className="animate-spin" size={20} /> : <Check size={20} />}
+                             </button>
+                             <button 
+                               disabled={isProcessing}
+                               onClick={(e) => { e.stopPropagation(); setSelectedBooking(req); setShowRejectionModal(true); }}
+                               className="bg-blue-400 text-white p-3 rounded-xl hover:bg-blue-500 transition-all shadow-lg shadow-blue-400/20 disabled:bg-slate-200"
+                             >
+                               <X size={20} />
+                             </button>
+                          </div>
+                        )}
+                        <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-slate-100 text-slate-400 group-hover:bg-[#1e40af] group-hover:text-white transition-all shadow-inner">
+                           <ChevronRight size={24} />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
+                ))}
+              </div>
+            )}
+          </div>
+        </main>
+        
+        <footer className="p-10 text-center mt-auto">
+           <div className="inline-flex items-center space-x-2 text-slate-300">
+              <ShieldCheck size={16} />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">Área de Acesso Restrito • Gestão Biblioteca de Sobral</span>
+           </div>
+        </footer>
+      </div>
 
       {/* Booking Details Modal */}
       {selectedBooking && !showRejectionModal && (
@@ -860,6 +901,60 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* User Removal Confirmation Modal */}
+      {showUserRemoveConfirm && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
+          <div className="bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl p-8 space-y-6 text-center">
+            <div className="bg-red-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto text-red-600 mb-4">
+              <ShieldAlert size={32} />
+            </div>
+            <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Remover Membro?</h3>
+            <p className="text-xs text-slate-400 font-medium">Esta ação removerá o acesso deste usuário ao painel administrativo.</p>
+            <div className="flex space-x-3">
+              <button 
+                onClick={() => setShowUserRemoveConfirm(null)}
+                className="flex-1 py-4 border-2 border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={() => handleRemoveUser(showUserRemoveConfirm)}
+                className="flex-1 py-4 bg-red-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-700 shadow-xl shadow-red-600/20 transition-all"
+              >
+                Remover
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Block Removal Confirmation Modal */}
+      {showBlockRemoveConfirm && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
+          <div className="bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl p-8 space-y-6 text-center">
+            <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto text-[#1e40af] mb-4">
+              <CalendarIcon size={32} />
+            </div>
+            <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Desbloquear Data?</h3>
+            <p className="text-xs text-slate-400 font-medium">A data voltará a ficar disponível para novos agendamentos.</p>
+            <div className="flex space-x-3">
+              <button 
+                onClick={() => setShowBlockRemoveConfirm(null)}
+                className="flex-1 py-4 border-2 border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={() => handleRemoveBlock(showBlockRemoveConfirm)}
+                className="flex-1 py-4 bg-[#1e40af] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-blue-900/20 transition-all"
+              >
+                Desbloquear
+              </button>
+            </div>
           </div>
         </div>
       )}

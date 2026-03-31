@@ -30,6 +30,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   useEffect(() => {
     // Monitorar estado de autenticação
@@ -97,10 +98,11 @@ const App: React.FC = () => {
     
     if (loginMethod === 'email') {
       if (!adminEmail || !adminPassword) {
-        alert("Preencha e-mail e senha.");
+        setLoginError("Preencha e-mail e senha.");
         return;
       }
       setIsLoading(true);
+      setLoginError(null);
       try {
         await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
         // O onAuthStateChanged cuidará do redirecionamento
@@ -109,9 +111,9 @@ const App: React.FC = () => {
       } catch (err: any) {
         console.error("Erro no login com e-mail:", err);
         if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-          alert("E-mail ou senha incorretos.");
+          setLoginError("E-mail ou senha incorretos.");
         } else {
-          alert("Erro ao autenticar. Verifique se o login com e-mail está habilitado no Firebase.");
+          setLoginError("Erro ao autenticar. Verifique se o login com e-mail está habilitado no Firebase.");
         }
       } finally {
         setIsLoading(false);
@@ -121,6 +123,8 @@ const App: React.FC = () => {
 
     // Primeiro nível: Senha local (lustosa) para acesso ao Google Login
     if (adminPassword === 'lustosa') {
+      setIsLoading(true);
+      setLoginError(null);
       try {
         const provider = new GoogleAuthProvider();
         const result = await signInWithPopup(auth, provider);
@@ -137,15 +141,17 @@ const App: React.FC = () => {
             setAdminPassword('');
           } else {
             await signOut(auth);
-            alert("Acesso negado. E-mail não autorizado.");
+            setLoginError("Acesso negado. E-mail não autorizado.");
           }
         }
       } catch (err) {
         console.error("Erro no login:", err);
-        alert("Erro ao autenticar com Google.");
+        setLoginError("Erro ao autenticar com Google.");
+      } finally {
+        setIsLoading(false);
       }
     } else {
-      alert("Senha administrativa incorreta.");
+      setLoginError("Senha administrativa incorreta.");
     }
   };
 
@@ -209,6 +215,12 @@ const App: React.FC = () => {
             </div>
 
             <form onSubmit={handleAdminLogin} className="space-y-6">
+              {loginError && (
+                <div className="bg-red-50 border border-red-100 p-4 rounded-2xl flex items-center space-x-3 text-red-600 animate-in fade-in slide-in-from-top-2">
+                  <AlertCircle size={18} />
+                  <p className="text-[10px] font-black uppercase tracking-widest leading-tight">{loginError}</p>
+                </div>
+              )}
               {loginMethod === 'email' ? (
                 <>
                   <div className="space-y-2">
