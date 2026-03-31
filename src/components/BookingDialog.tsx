@@ -2,10 +2,9 @@
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { X, Clock, Users, Building2, User, Mail, FileText, Sparkles, Loader2, ShieldCheck, MailCheck, AlertCircle, RefreshCw, GraduationCap } from 'lucide-react';
+import { X, Clock, Users, Building2, User, Mail, FileText, Loader2, ShieldCheck, MailCheck, AlertCircle, RefreshCw, GraduationCap } from 'lucide-react';
 import { TIME_SLOTS, TURMAS } from '../constants';
 import { TimeSlot, Turma, BookingData } from '../types';
-import { generateObjectiveSuggestion } from '../services/geminiService';
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../services/firestore';
@@ -33,7 +32,6 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
     quantity: '' as unknown as number,
     objective: ''
   });
-  const [isGenerating, setIsGenerating] = useState(false);
 
   const getSlotBooking = (slot: TimeSlot) => {
     const targetDateString = format(date, 'yyyy-MM-dd');
@@ -49,18 +47,6 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
     if (getSlotBooking(slot)) return;
     setSelectedSlot(slot);
     setStep('form');
-  };
-
-  const handleSuggestObjective = async () => {
-    if (!formData.institutionName) {
-      setError("Informe o nome da instituição para gerar o objetivo.");
-      return;
-    }
-    setError(null);
-    setIsGenerating(true);
-    const suggestion = await generateObjectiveSuggestion(formData.turma, formData.institutionName);
-    setFormData(prev => ({ ...prev, objective: suggestion }));
-    setIsGenerating(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -108,8 +94,8 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
         {step !== 'success' && (
           <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
             <div className="flex items-center space-x-4">
-              <div className="bg-red-50 p-2.5 rounded-2xl">
-                 <SobralLogo size={28} className="text-[#800000]" />
+              <div className="bg-blue-50 p-2.5 rounded-2xl">
+                 <SobralLogo size={28} className="text-blue-600" />
               </div>
               <div>
                 <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">
@@ -128,12 +114,12 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
 
         <div className="overflow-y-auto">
           {error && (
-            <div className="mx-6 mt-6 p-4 bg-red-50 border-2 border-red-100 rounded-2xl flex items-start space-x-3 animate-in slide-in-from-top duration-300">
-              <AlertCircle className="text-[#800000] flex-shrink-0" size={20} />
+            <div className="mx-6 mt-6 p-4 bg-blue-50 border-2 border-blue-100 rounded-2xl flex items-start space-x-3 animate-in slide-in-from-top duration-300">
+              <AlertCircle className="text-blue-600 flex-shrink-0" size={20} />
               <div className="flex-grow">
-                <p className="text-[10px] font-black text-[#800000] uppercase tracking-widest mb-1">Atenção</p>
-                <p className="text-xs text-red-700 leading-relaxed font-medium">{error}</p>
-                <button onClick={() => setError(null)} className="mt-2 text-[10px] font-bold text-[#800000] uppercase underline">Fechar</button>
+                <p className="text-[10px] font-black text-blue-800 uppercase tracking-widest mb-1">Atenção</p>
+                <p className="text-xs text-blue-700 leading-relaxed font-medium">{error}</p>
+                <button onClick={() => setError(null)} className="mt-2 text-[10px] font-bold text-blue-800 uppercase underline">Fechar</button>
               </div>
             </div>
           )}
@@ -152,10 +138,10 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
                       key={idx}
                       disabled={occupied}
                       onClick={() => handleSlotSelect(slot)}
-                      className={`group flex items-center justify-between p-5 border-2 rounded-2xl transition-all ${occupied ? 'bg-slate-50 border-slate-100 opacity-60 grayscale cursor-not-allowed' : 'border-slate-100 hover:border-[#800000] hover:bg-red-50/30'}`}
+                      className={`group flex items-center justify-between p-5 border-2 rounded-2xl transition-all ${occupied ? 'bg-slate-50 border-slate-100 opacity-60 grayscale cursor-not-allowed' : 'border-slate-100 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)]/30'}`}
                     >
                       <div className="text-left">
-                        <span className={`block text-lg font-black tracking-tighter ${occupied ? 'text-slate-400' : 'text-slate-800 group-hover:text-[#800000]'}`}>{slot.start}</span>
+                        <span className={`block text-lg font-black tracking-tighter ${occupied ? 'text-slate-400' : 'text-slate-800 group-hover:text-[var(--color-primary)]'}`}>{slot.start}</span>
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Duração: 1h</span>
                       </div>
                       <div className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${occupied ? (isPending ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-500') : 'bg-green-100 text-green-700'}`}>
@@ -173,42 +159,38 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center"><User size={12} className="mr-1" /> Responsável</label>
-                  <input required disabled={isSubmitting} type="text" value={formData.responsibleName} onChange={e => setFormData(prev => ({ ...prev, responsibleName: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[#800000] outline-none transition-all font-medium" placeholder="Nome completo" />
+                  <input required disabled={isSubmitting} type="text" value={formData.responsibleName} onChange={e => setFormData(prev => ({ ...prev, responsibleName: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[var(--color-primary)] outline-none transition-all font-medium" placeholder="Nome completo" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center"><Building2 size={12} className="mr-1" /> Instituição / Escola</label>
-                  <input required disabled={isSubmitting} type="text" value={formData.institutionName} onChange={e => setFormData(prev => ({ ...prev, institutionName: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[#800000] outline-none transition-all font-medium" placeholder="Nome da escola" />
+                  <input required disabled={isSubmitting} type="text" value={formData.institutionName} onChange={e => setFormData(prev => ({ ...prev, institutionName: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[var(--color-primary)] outline-none transition-all font-medium" placeholder="Nome da escola" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center"><Mail size={12} className="mr-1" /> E-mail de Confirmação</label>
-                  <input required disabled={isSubmitting} type="email" value={formData.email} onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[#800000] outline-none transition-all font-medium" placeholder="exemplo@email.com" />
+                  <input required disabled={isSubmitting} type="email" value={formData.email} onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[var(--color-primary)] outline-none transition-all font-medium" placeholder="exemplo@email.com" />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center"><GraduationCap size={12} className="mr-1" /> Turma / Nível</label>
-                  <select required disabled={isSubmitting} value={formData.turma} onChange={e => setFormData(prev => ({ ...prev, turma: e.target.value as Turma }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[#800000] outline-none transition-all font-medium appearance-none">
+                  <select required disabled={isSubmitting} value={formData.turma} onChange={e => setFormData(prev => ({ ...prev, turma: e.target.value as Turma }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[var(--color-primary)] outline-none transition-all font-medium appearance-none">
                     {TURMAS.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center"><Users size={12} className="mr-1" /> Qtd. Pessoas (Máx: 40)</label>
-                  <input required disabled={isSubmitting} type="number" max="40" min="1" value={formData.quantity} onChange={e => setFormData(prev => ({ ...prev, quantity: e.target.value as any }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[#800000] outline-none transition-all font-medium" />
+                  <input required disabled={isSubmitting} type="number" max="40" min="1" value={formData.quantity} onChange={e => setFormData(prev => ({ ...prev, quantity: e.target.value as any }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[var(--color-primary)] outline-none transition-all font-medium" />
                 </div>
               </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between items-center mb-1">
                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center"><FileText size={12} className="mr-1" /> Objetivo Pedagógico</label>
-                   <button type="button" onClick={handleSuggestObjective} className="text-[10px] font-bold text-[#800000] bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 flex items-center hover:bg-red-100 transition-colors">
-                     {isGenerating ? <Loader2 size={12} className="animate-spin mr-1" /> : <Sparkles size={12} className="mr-1" />} 
-                     Sugestão IA
-                   </button>
                 </div>
-                <textarea required disabled={isSubmitting} rows={3} value={formData.objective} onChange={e => setFormData(prev => ({ ...prev, objective: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[#800000] outline-none transition-all font-medium resize-none text-sm" placeholder="Qual o propósito da visita?" />
+                <textarea required disabled={isSubmitting} rows={3} value={formData.objective} onChange={e => setFormData(prev => ({ ...prev, objective: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[var(--color-primary)] outline-none transition-all font-medium resize-none text-sm" placeholder="Qual o propósito da visita?" />
               </div>
 
               <div className="flex items-center space-x-3 pt-4">
                  <button type="button" onClick={() => setStep('slot')} className="px-6 py-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-400 uppercase tracking-widest text-xs hover:bg-slate-50 transition-all">Voltar</button>
-                 <button type="submit" disabled={isSubmitting} className="flex-grow py-4 bg-[#800000] text-white font-black uppercase tracking-widest text-xs rounded-2xl flex items-center justify-center disabled:bg-slate-400 shadow-xl shadow-red-900/20 active:scale-95 transition-all">
+                 <button type="submit" disabled={isSubmitting} className="flex-grow py-4 bg-[var(--color-primary)] text-white font-black uppercase tracking-widest text-xs rounded-2xl flex items-center justify-center disabled:bg-slate-400 shadow-xl shadow-blue-900/20 active:scale-95 transition-all">
                   {isSubmitting ? <><Loader2 className="animate-spin mr-2" size={18} /> Processando...</> : 'Finalizar Agendamento'}
                 </button>
               </div>
@@ -217,7 +199,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
 
           {step === 'success' && (
             <div className="flex flex-col bg-white min-h-full animate-in fade-in zoom-in duration-500">
-              <div className="bg-[#800000] p-10 text-center relative overflow-hidden">
+              <div className="bg-[var(--color-primary)] p-10 text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
                    <div className="absolute top-[-20%] left-[-10%] w-64 h-64 bg-white rounded-full blur-3xl"></div>
                    <div className="absolute bottom-[-20%] right-[-10%] w-64 h-64 bg-white rounded-full blur-3xl"></div>
@@ -234,7 +216,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
               <div className="p-8 space-y-6 flex flex-col items-center">
                 <div className="w-full max-w-md bg-white border border-slate-100 rounded-3xl shadow-xl overflow-hidden">
                   <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <SobralLogo size={24} className="text-[#800000]" />
+                    <SobralLogo size={24} className="text-blue-600" />
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Confirmação de Agendamento</span>
                   </div>
                   <div className="p-6 space-y-4">
@@ -258,8 +240,8 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
                       </p>
                     </div>
                   </div>
-                  <div className="bg-red-50 p-4 text-center">
-                    <p className="text-[10px] font-black text-[#800000] uppercase tracking-widest">Aguarde o e-mail de confirmação final</p>
+                  <div className="bg-[var(--color-primary-light)] p-4 text-center">
+                    <p className="text-[10px] font-black text-[var(--color-primary)] uppercase tracking-widest">Aguarde o e-mail de confirmação final</p>
                   </div>
                 </div>
 

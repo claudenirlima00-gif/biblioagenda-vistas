@@ -121,12 +121,12 @@ const Calendar: React.FC<CalendarProps> = ({ onSelectDate, selectedDate, booking
             className={`
               relative h-24 sm:h-32 border-t border-l border-slate-100 p-2 cursor-pointer transition-all
               ${!isSameMonth(day, monthStart) ? 'bg-slate-50 text-slate-300 pointer-events-none' : ''}
-              ${isDisabled ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'hover:bg-red-50/50'}
-              ${selectedDate && isSameDay(day, selectedDate) ? 'bg-red-50 ring-2 ring-[#800000] z-10' : ''}
+              ${isDisabled ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'hover:bg-[var(--color-primary-light)]/50'}
+              ${selectedDate && isSameDay(day, selectedDate) ? 'bg-[var(--color-primary-light)] ring-2 ring-[var(--color-primary)] z-10' : ''}
             `}
             onClick={() => !isDisabled && onSelectDate(cloneDay)}
           >
-            <span className={`text-sm font-semibold inline-flex items-center justify-center w-8 h-8 rounded-full ${isSameDay(day, today) ? 'text-white bg-[#800000] shadow-md shadow-red-900/30' : ''}`}>
+            <span className={`text-sm font-semibold inline-flex items-center justify-center w-8 h-8 rounded-full ${isSameDay(day, today) ? 'text-white bg-[var(--color-primary)] shadow-md shadow-blue-900/30' : ''}`}>
               {formattedDate}
             </span>
             
@@ -138,7 +138,7 @@ const Calendar: React.FC<CalendarProps> = ({ onSelectDate, selectedDate, booking
             )}
 
             {holidayName && (
-              <div className="mt-1 text-[10px] sm:text-xs text-[#800000] font-bold leading-tight">
+              <div className="mt-1 text-[10px] sm:text-xs text-[var(--color-primary)] font-bold leading-tight">
                 {holidayName}
               </div>
             )}
@@ -166,8 +166,8 @@ const Calendar: React.FC<CalendarProps> = ({ onSelectDate, selectedDate, booking
 
   return (
     <div className="w-full max-w-5xl mx-auto p-4 sm:p-6 bg-white rounded-2xl shadow-lg border border-slate-200">
-      <div className="mb-6 flex items-center text-sm text-[#800000] bg-red-50 p-4 rounded-xl border border-red-100/50">
-        <Info className="mr-3 text-[#800000] flex-shrink-0" size={20} />
+      <div className="mb-6 flex items-center text-sm text-[var(--color-primary)] bg-[var(--color-primary-light)] p-4 rounded-xl border border-blue-100/50">
+        <Info className="mr-3 text-[var(--color-primary)] flex-shrink-0" size={20} />
         <p className="font-medium">Selecione uma data disponível para realizar o agendamento da visita do seu grupo.</p>
       </div>
       {renderHeader()}
