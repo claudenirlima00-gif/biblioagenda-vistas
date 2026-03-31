@@ -1,0 +1,69 @@
+{
+  "entities": {
+    "Booking": {
+      "title": "Booking",
+      "description": "A booking request for a guided visit.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "dateString": { "type": "string", "format": "date", "description": "ISO format YYYY-MM-DD" },
+        "slot": {
+          "type": "object",
+          "properties": {
+            "start": { "type": "string" },
+            "end": { "type": "string" }
+          },
+          "required": ["start", "end"]
+        },
+        "responsibleName": { "type": "string" },
+        "institutionName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "turma": { "type": "string" },
+        "quantity": { "type": "integer" },
+        "objective": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "rejected"] },
+        "rejectionReason": { "type": "string" },
+        "rejectionDetails": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["dateString", "slot", "responsibleName", "institutionName", "email", "turma", "quantity", "objective", "status", "createdAt"]
+    },
+    "BlockedDate": {
+      "title": "BlockedDate",
+      "description": "A date that is blocked for visits.",
+      "type": "object",
+      "properties": {
+        "dateString": { "type": "string", "format": "date" },
+        "reason": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["dateString", "reason", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "A user with access to the admin dashboard.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "staff"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Collection of visit bookings."
+    },
+    "/blocked_dates/{dateId}": {
+      "schema": "BlockedDate",
+      "description": "Collection of blocked dates."
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of authorized users."
+    }
+  }
+}

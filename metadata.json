@@ -1,0 +1,5 @@
+{
+  "name": "BiblioAgenda - Sistema de Visitas Guiadas",
+  "description": "Sistema intuitivo para agendamento de visitas guiadas em bibliotecas municipais, com calendário inteligente e assistente de IA para formulação de objetivos pedagógicos.",
+  "requestFramePermissions": []
+}

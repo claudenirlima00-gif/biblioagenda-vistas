@@ -1,0 +1,129 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: bookings
+    // Fields:
+    //   - dateString: string (required, YYYY-MM-DD)
+    //   - slot: map (required, {start: string, end: string})
+    //   - responsibleName: string (required)
+    //   - institutionName: string (required)
+    //   - email: string (required, email format)
+    //   - turma: string (required)
+    //   - quantity: number (required)
+    //   - objective: string (required)
+    //   - status: string (required, enum: pending, confirmed, rejected)
+    //   - rejectionReason: string (optional)
+    //   - rejectionDetails: string (optional)
+    //   - createdAt: string (required, ISO date-time)
+    //
+    // Collection: blocked_dates
+    // Fields:
+    //   - dateString: string (required, YYYY-MM-DD)
+    //   - reason: string (required)
+    //   - createdAt: string (required, ISO date-time)
+    //
+    // Collection: users
+    // Document ID: email (string)
+    // Fields:
+    //   - name: string (required)
+    //   - email: string (required)
+    //   - role: string (required, enum: admin, staff)
+    //   - createdAt: string (required, ISO date-time)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isMasterAdmin() {
+      return isAuthenticated() &&
+             request.auth.token.email == "claudenir.lima00@gmail.com";
+    }
+
+    function isAdmin() {
+      return isMasterAdmin() || (
+        isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.token.email)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.token.email)).data.role == 'admin'
+      );
+    }
+
+    function isStaff() {
+      return isAdmin() || (
+        isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.token.email)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.token.email)).data.role == 'staff'
+      );
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidBooking(data) {
+      return data.keys().hasAll(['dateString', 'slot', 'responsibleName', 'institutionName', 'email', 'turma', 'quantity', 'objective', 'status', 'createdAt']) &&
+             data.dateString is string &&
+             data.slot is map &&
+             data.responsibleName is string && data.responsibleName.size() > 0 &&
+             data.institutionName is string && data.institutionName.size() > 0 &&
+             isValidEmail(data.email) &&
+             data.turma is string &&
+             data.quantity is number &&
+             data.objective is string &&
+             data.status in ['pending', 'confirmed', 'rejected'] &&
+             data.createdAt is string;
+    }
+
+    function isValidBlockedDate(data) {
+      return data.keys().hasAll(['dateString', 'reason', 'createdAt']) &&
+             data.dateString is string &&
+             data.reason is string &&
+             data.createdAt is string;
+    }
+
+    // Rules for Bookings
+    match /bookings/{bookingId} {
+      // Anyone can read bookings (needed to check availability)
+      allow read: if true;
+      
+      // Public can create a booking request
+      allow create: if isValidBooking(request.resource.data) && request.resource.data.status == 'pending';
+      
+      // Staff can update (confirm/reject)
+      allow update: if isStaff() && isValidBooking(request.resource.data);
+      
+      // Only admin can delete
+      allow delete: if isAdmin();
+    }
+
+    // Rules for Blocked Dates
+    match /blocked_dates/{dateId} {
+      allow read: if true;
+      allow create, update: if isStaff() && isValidBlockedDate(request.resource.data);
+      allow delete: if isStaff();
+    }
+
+    // Rules for Mail (Trigger Email Extension)
+    match /mail/{mailId} {
+      allow read: if isStaff();
+      allow create: if isStaff();
+    }
+
+    // Rules for Users (Admin roles)
+    match /users/{userEmail} {
+      // Admins can list and read all users
+      // Users can read their own document
+      allow read: if isAdmin() || (isAuthenticated() && request.auth.token.email == userEmail);
+      
+      // Only admins can write to users collection
+      allow write: if isAdmin();
+    }
+  }
+}
