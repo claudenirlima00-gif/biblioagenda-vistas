@@ -41,14 +41,14 @@ class ErrorBoundary extends React.Component<Props, State> {
       return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
           <div className="bg-white p-12 rounded-[3rem] shadow-2xl border border-slate-100 max-w-md w-full text-center space-y-6">
-            <div className="bg-blue-50 w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto text-blue-600">
+            <div className="bg-[var(--color-primary-light)] w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto text-[var(--color-primary)]">
               <span className="text-4xl">⚠️</span>
             </div>
             <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Ops! Algo deu errado</h2>
             <p className="text-slate-500 font-medium">{errorMessage}</p>
             <button 
               onClick={() => window.location.reload()}
-              className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-900 transition-all"
+              className="w-full bg-[var(--color-primary)] text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-900 transition-all"
             >
               Recarregar Aplicativo
             </button>

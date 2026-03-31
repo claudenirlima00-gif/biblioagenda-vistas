@@ -1,15 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #1e40af;
-  --color-primary-hover: #1d4ed8;
-  --color-primary-light: #eff6ff;
+  --color-primary: #800000;
+  --color-primary-hover: #600000;
+  --color-primary-light: #fff5f5;
 }
 
 @theme {
-  --color-primary: #1e40af;
-  --color-primary-hover: #1d4ed8;
-  --color-primary-light: #eff6ff;
+  --color-primary: #800000;
+  --color-primary-hover: #600000;
+  --color-primary-light: #fff5f5;
+  --color-maroon-900: #400000;
 }
 
 body {

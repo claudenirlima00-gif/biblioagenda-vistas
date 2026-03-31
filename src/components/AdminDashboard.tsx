@@ -8,7 +8,7 @@ import { doc, updateDoc, deleteDoc, setDoc, collection, onSnapshot, query, order
 import { handleFirestoreError, OperationType } from '../services/firestore';
 import { sendBookingEmail } from '../services/emailService';
 import SobralLogo from './SobralLogo';
-import { initializeApp } from 'firebase/app';
+import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signOut as signOutAuth } from 'firebase/auth';
 import firebaseConfig from '../firebase-applet-config.json';
 import { 
@@ -122,8 +122,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         }
       } finally {
         // Limpar a instância secundária
-        // @ts-ignore
-        secondaryApp.delete();
+        await deleteApp(secondaryApp);
       }
 
       const newUser: Omit<TeamUser, 'id'> = {
@@ -332,7 +331,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* Sidebar Navigation */}
       <aside className="w-72 bg-white border-r border-slate-200 flex flex-col sticky top-0 h-screen shrink-0">
         <div className="p-8 flex items-center space-x-4 border-b border-slate-100">
-          <div className="bg-blue-600 p-2 rounded-xl text-white shadow-lg shadow-blue-600/20 rotate-3 overflow-hidden shrink-0">
+          <div className="bg-[var(--color-primary)] p-2 rounded-xl text-white shadow-lg shadow-maroon-900/20 rotate-3 overflow-hidden shrink-0">
             <SobralLogo size={32} className="text-white" />
           </div>
           <div>
@@ -346,7 +345,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-blue-600/20' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'}`}
+              className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-maroon-900/20' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'}`}
             >
               <div className="flex items-center space-x-3">
                 {getTabIcon(tab)}
@@ -380,7 +379,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </h2>
             {feedbackMessage && (
               <div className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest animate-in fade-in slide-in-from-left-2 duration-300 ${
-                feedbackMessage.type === 'success' ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-blue-50 text-blue-600 border border-blue-100'
+                feedbackMessage.type === 'success' ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-[var(--color-primary-light)] text-[var(--color-primary)] border border-[var(--color-primary-light)]'
               }`}>
                 {feedbackMessage.text}
               </div>
@@ -391,7 +390,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {activeTab === 'blocked' && (
               <button 
                 onClick={() => setShowBlockModal(true)}
-                className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-blue-600/20 flex items-center"
+                className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-maroon-900/20 flex items-center"
               >
                 <Plus size={16} className="mr-2" /> Bloquear Data
               </button>
@@ -400,7 +399,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {activeTab === 'team' && isMasterAdmin && (
               <button 
                 onClick={() => setShowAddUserModal(true)}
-                className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-blue-600/20 flex items-center"
+                className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-maroon-900/20 flex items-center"
               >
                 <UserPlus size={16} className="mr-2" /> Adicionar Membro
               </button>
@@ -417,7 +416,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button 
                         onClick={() => setShowUserRemoveConfirm(member.id)}
-                        className="p-2 bg-[var(--color-primary-light)] text-[var(--color-primary)] rounded-xl hover:bg-blue-100 transition-colors"
+                        className="p-2 bg-[var(--color-primary-light)] text-[var(--color-primary)] rounded-xl hover:bg-[var(--color-primary-light)] transition-colors"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -451,7 +450,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button 
                           onClick={() => setShowBlockRemoveConfirm(block.dateString)}
-                          className="p-2 bg-[var(--color-primary-light)] text-[var(--color-primary)] rounded-xl hover:bg-blue-100 transition-colors"
+                          className="p-2 bg-[var(--color-primary-light)] text-[var(--color-primary)] rounded-xl hover:bg-[var(--color-primary-light)] transition-colors"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -542,13 +541,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                              <button 
                                disabled={isProcessing}
                                onClick={(e) => { e.stopPropagation(); setSelectedBooking(req); setShowRejectionModal(true); }}
-                               className="bg-blue-400 text-white p-3 rounded-xl hover:bg-blue-500 transition-all shadow-lg shadow-blue-400/20 disabled:bg-slate-200"
+                               className="bg-[var(--color-primary-hover)] text-white p-3 rounded-xl hover:bg-slate-900 transition-all shadow-lg shadow-maroon-900/20 disabled:bg-slate-200"
                              >
                                <X size={20} />
                              </button>
                           </div>
                         )}
-                        <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-slate-100 text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-inner">
+                        <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-slate-100 text-slate-400 group-hover:bg-[var(--color-primary)] group-hover:text-white transition-all shadow-inner">
                            <ChevronRight size={24} />
                         </div>
                       </div>
@@ -574,7 +573,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
             <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <div className="flex items-center space-x-4">
-                <div className="bg-[var(--color-primary)] p-3 rounded-2xl text-white shadow-xl shadow-blue-600/20">
+                <div className="bg-[var(--color-primary)] p-3 rounded-2xl text-white shadow-xl shadow-maroon-900/20">
                   <FileText size={24} />
                 </div>
                 <div>
@@ -623,7 +622,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
 
               {selectedBooking.status === 'rejected' && (
-                <div className="bg-[var(--color-primary-light)] p-6 rounded-3xl border border-blue-100">
+                <div className="bg-[var(--color-primary-light)] p-6 rounded-3xl border border-[var(--color-primary-light)]">
                   <p className="text-[10px] font-black text-[var(--color-primary)] uppercase tracking-widest mb-2 opacity-60">Motivo da Rejeição</p>
                   <p className="text-sm text-[var(--color-primary)] font-bold">{selectedBooking.rejectionReason}</p>
                   {selectedBooking.rejectionDetails && (
@@ -691,7 +690,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button 
                 disabled={isProcessing}
                 onClick={() => handleDelete(showDeleteConfirm)}
-                className="w-full py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-blue-600/20 transition-all flex items-center justify-center"
+                className="w-full py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-maroon-900/20 transition-all flex items-center justify-center"
               >
                 {isProcessing ? <Loader2 className="animate-spin mr-2" size={14} /> : <Trash2 size={14} className="mr-2" />}
                 Confirmar Exclusão
@@ -727,7 +726,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   type="text" 
                   value={newUserName}
                   onChange={(e) => setNewUserName(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-blue-500 outline-none transition-all font-bold text-sm"
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[var(--color-primary)] outline-none transition-all font-bold text-sm"
                   placeholder="Ex: João Silva"
                 />
               </div>
@@ -739,7 +738,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   type="email"
                   value={newUserEmail}
                   onChange={(e) => setNewUserEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-blue-500 outline-none transition-all font-medium text-sm"
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[var(--color-primary)] outline-none transition-all font-medium text-sm"
                   placeholder="email@exemplo.com"
                 />
               </div>
@@ -751,7 +750,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   type="password"
                   value={newUserPassword}
                   onChange={(e) => setNewUserPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-blue-500 outline-none transition-all font-medium text-sm"
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[var(--color-primary)] outline-none transition-all font-medium text-sm"
                   placeholder="••••••••"
                   minLength={6}
                 />
@@ -762,7 +761,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <select 
                   value={newUserRole}
                   onChange={(e) => setNewUserRole(e.target.value as 'admin' | 'staff')}
-                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-blue-500 outline-none transition-all font-bold text-sm"
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[var(--color-primary)] outline-none transition-all font-bold text-sm"
                 >
                   <option value="staff">Equipe (Visualização e Gestão)</option>
                   <option value="admin">Administrador (Gestão Total)</option>
@@ -780,7 +779,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <button 
                   type="submit"
                   disabled={isProcessing}
-                  className="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-blue-600/20 transition-all flex items-center justify-center"
+                  className="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-maroon-900/20 transition-all flex items-center justify-center"
                 >
                   {isProcessing ? <Loader2 className="animate-spin mr-2" size={14} /> : <Check size={14} className="mr-2" />}
                   Autorizar
@@ -840,7 +839,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button 
                 onClick={handleReject}
                 disabled={!rejectionReason}
-                className="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-blue-600/20 transition-all disabled:bg-slate-200 disabled:shadow-none"
+                className="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-maroon-900/20 transition-all disabled:bg-slate-200 disabled:shadow-none"
               >
                 Confirmar Rejeição
               </button>
@@ -924,7 +923,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </button>
               <button 
                 onClick={() => handleRemoveUser(showUserRemoveConfirm)}
-                className="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-blue-600/20 transition-all"
+                className="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-maroon-900/20 transition-all"
               >
                 Remover
               </button>
@@ -951,7 +950,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </button>
               <button 
                 onClick={() => handleRemoveBlock(showBlockRemoveConfirm)}
-                className="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-blue-600/20 transition-all"
+                className="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-maroon-900/20 transition-all"
               >
                 Desbloquear
               </button>

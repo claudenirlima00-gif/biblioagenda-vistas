@@ -126,7 +126,7 @@ const Calendar: React.FC<CalendarProps> = ({ onSelectDate, selectedDate, booking
             `}
             onClick={() => !isDisabled && onSelectDate(cloneDay)}
           >
-            <span className={`text-sm font-semibold inline-flex items-center justify-center w-8 h-8 rounded-full ${isSameDay(day, today) ? 'text-white bg-[var(--color-primary)] shadow-md shadow-blue-900/30' : ''}`}>
+            <span className={`text-sm font-semibold inline-flex items-center justify-center w-8 h-8 rounded-full ${isSameDay(day, today) ? 'text-white bg-[var(--color-primary)] shadow-md shadow-maroon-900/30' : ''}`}>
               {formattedDate}
             </span>
             
@@ -166,7 +166,7 @@ const Calendar: React.FC<CalendarProps> = ({ onSelectDate, selectedDate, booking
 
   return (
     <div className="w-full max-w-5xl mx-auto p-4 sm:p-6 bg-white rounded-2xl shadow-lg border border-slate-200">
-      <div className="mb-6 flex items-center text-sm text-[var(--color-primary)] bg-[var(--color-primary-light)] p-4 rounded-xl border border-blue-100/50">
+      <div className="mb-6 flex items-center text-sm text-[var(--color-primary)] bg-[var(--color-primary-light)] p-4 rounded-xl border border-[var(--color-primary-light)]">
         <Info className="mr-3 text-[var(--color-primary)] flex-shrink-0" size={20} />
         <p className="font-medium">Selecione uma data disponível para realizar o agendamento da visita do seu grupo.</p>
       </div>

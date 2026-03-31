@@ -179,7 +179,7 @@ const App: React.FC = () => {
         {/* Elementos Decorativos de Fundo */}
         <div className="absolute top-0 left-0 w-full h-1 bg-[var(--color-primary)]"></div>
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-[var(--color-primary)]/5 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[var(--color-primary)]/5 rounded-full blur-3xl"></div>
 
         <div className="w-full max-w-md relative z-10">
           <button 
@@ -191,7 +191,7 @@ const App: React.FC = () => {
 
           <div className="bg-white p-12 rounded-[3rem] shadow-2xl shadow-slate-200/60 border border-slate-100 space-y-10">
             <div className="text-center space-y-4">
-              <div className="bg-blue-600 w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto text-white shadow-2xl shadow-blue-900/30 rotate-6 overflow-hidden">
+              <div className="bg-[var(--color-primary)] w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto text-white shadow-2xl shadow-maroon-900/30 rotate-6 overflow-hidden">
                 <SobralLogo size={40} className="text-white" />
               </div>
               <div className="space-y-1">
@@ -217,7 +217,7 @@ const App: React.FC = () => {
 
             <form onSubmit={handleAdminLogin} className="space-y-6">
               {loginError && (
-                <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-center space-x-3 text-blue-600 animate-in fade-in slide-in-from-top-2">
+                <div className="bg-[var(--color-primary-light)] border border-[var(--color-primary-light)] p-4 rounded-2xl flex items-center space-x-3 text-[var(--color-primary)] animate-in fade-in slide-in-from-top-2">
                   <AlertCircle size={18} />
                   <p className="text-[10px] font-black uppercase tracking-widest leading-tight">{loginError}</p>
                 </div>
@@ -263,7 +263,7 @@ const App: React.FC = () => {
               <button 
                 type="submit" 
                 disabled={isLoading}
-                className="w-full bg-[var(--color-primary)] text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-900 transition-all shadow-xl shadow-blue-900/10 active:scale-95 flex items-center justify-center disabled:bg-slate-300"
+                className="w-full bg-[var(--color-primary)] text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-900 transition-all shadow-xl shadow-maroon-900/10 active:scale-95 flex items-center justify-center disabled:bg-slate-300"
               >
                 {isLoading ? <Loader2 className="animate-spin mr-2" size={18} /> : 'Autenticar Painel'}
               </button>
@@ -283,8 +283,8 @@ const App: React.FC = () => {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40 backdrop-blur-md bg-white/80">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="bg-blue-50 p-2.5 rounded-2xl">
-              <SobralLogo size={32} className="text-blue-600" />
+            <div className="bg-[var(--color-primary-light)] p-2.5 rounded-2xl">
+              <SobralLogo size={32} className="text-[var(--color-primary)]" />
             </div>
             <div className="flex flex-col">
               <h1 className="text-lg font-black text-slate-900 tracking-tighter leading-none uppercase">Biblioteca Municipal de Sobral</h1>
@@ -339,7 +339,7 @@ const App: React.FC = () => {
               </div>
 
               <div className="pt-4">
-                 <div className="bg-[var(--color-primary)] rounded-2xl p-5 text-white shadow-xl shadow-blue-900/20">
+                 <div className="bg-[var(--color-primary)] rounded-2xl p-5 text-white shadow-xl shadow-maroon-900/20">
                     <p className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-60 italic">Dica Importante</p>
                     <p className="text-xs font-medium leading-relaxed">Agende com pelo menos 48h de antecedência para garantir a melhor experiência para seu grupo.</p>
                  </div>
@@ -347,11 +347,11 @@ const App: React.FC = () => {
             </div>
             
             {error && (
-              <div className="bg-blue-50 border-2 border-blue-100 p-6 rounded-2xl flex items-start space-x-4 shadow-xl shadow-blue-900/5 animate-bounce">
-                <AlertCircle className="text-blue-600 flex-shrink-0" size={24} />
+              <div className="bg-[var(--color-primary-light)] border-2 border-[var(--color-primary-light)] p-6 rounded-2xl flex items-start space-x-4 shadow-xl shadow-maroon-900/5 animate-bounce">
+                <AlertCircle className="text-[var(--color-primary)] flex-shrink-0" size={24} />
                 <div>
-                  <p className="text-[10px] font-black text-blue-800 uppercase tracking-widest mb-1">Status do Sistema</p>
-                  <p className="text-xs font-bold text-blue-700 leading-tight">{error}</p>
+                  <p className="text-[10px] font-black text-[var(--color-primary)] uppercase tracking-widest mb-1">Status do Sistema</p>
+                  <p className="text-xs font-bold text-[var(--color-primary)] leading-tight">{error}</p>
                 </div>
               </div>
             )}

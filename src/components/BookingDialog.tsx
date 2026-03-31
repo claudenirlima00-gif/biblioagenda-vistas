@@ -94,8 +94,8 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
         {step !== 'success' && (
           <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
             <div className="flex items-center space-x-4">
-              <div className="bg-blue-50 p-2.5 rounded-2xl">
-                 <SobralLogo size={28} className="text-blue-600" />
+              <div className="bg-[var(--color-primary-light)] p-2.5 rounded-2xl">
+                 <SobralLogo size={28} className="text-[var(--color-primary)]" />
               </div>
               <div>
                 <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">
@@ -114,12 +114,12 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
 
         <div className="overflow-y-auto">
           {error && (
-            <div className="mx-6 mt-6 p-4 bg-blue-50 border-2 border-blue-100 rounded-2xl flex items-start space-x-3 animate-in slide-in-from-top duration-300">
-              <AlertCircle className="text-blue-600 flex-shrink-0" size={20} />
+            <div className="mx-6 mt-6 p-4 bg-[var(--color-primary-light)] border-2 border-[var(--color-primary-light)] rounded-2xl flex items-start space-x-3 animate-in slide-in-from-top duration-300">
+              <AlertCircle className="text-[var(--color-primary)] flex-shrink-0" size={20} />
               <div className="flex-grow">
-                <p className="text-[10px] font-black text-blue-800 uppercase tracking-widest mb-1">Atenção</p>
-                <p className="text-xs text-blue-700 leading-relaxed font-medium">{error}</p>
-                <button onClick={() => setError(null)} className="mt-2 text-[10px] font-bold text-blue-800 uppercase underline">Fechar</button>
+                <p className="text-[10px] font-black text-[var(--color-primary)] uppercase tracking-widest mb-1">Atenção</p>
+                <p className="text-xs text-[var(--color-primary)] leading-relaxed font-medium">{error}</p>
+                <button onClick={() => setError(null)} className="mt-2 text-[10px] font-bold text-[var(--color-primary)] uppercase underline">Fechar</button>
               </div>
             </div>
           )}
@@ -190,7 +190,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
 
               <div className="flex items-center space-x-3 pt-4">
                  <button type="button" onClick={() => setStep('slot')} className="px-6 py-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-400 uppercase tracking-widest text-xs hover:bg-slate-50 transition-all">Voltar</button>
-                 <button type="submit" disabled={isSubmitting} className="flex-grow py-4 bg-[var(--color-primary)] text-white font-black uppercase tracking-widest text-xs rounded-2xl flex items-center justify-center disabled:bg-slate-400 shadow-xl shadow-blue-900/20 active:scale-95 transition-all">
+                 <button type="submit" disabled={isSubmitting} className="flex-grow py-4 bg-[var(--color-primary)] text-white font-black uppercase tracking-widest text-xs rounded-2xl flex items-center justify-center disabled:bg-slate-400 shadow-xl shadow-maroon-900/20 active:scale-95 transition-all">
                   {isSubmitting ? <><Loader2 className="animate-spin mr-2" size={18} /> Processando...</> : 'Finalizar Agendamento'}
                 </button>
               </div>
@@ -216,7 +216,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
               <div className="p-8 space-y-6 flex flex-col items-center">
                 <div className="w-full max-w-md bg-white border border-slate-100 rounded-3xl shadow-xl overflow-hidden">
                   <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <SobralLogo size={24} className="text-blue-600" />
+                    <SobralLogo size={24} className="text-[var(--color-primary)]" />
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Confirmação de Agendamento</span>
                   </div>
                   <div className="p-6 space-y-4">
