@@ -4,7 +4,7 @@ import Calendar from './components/Calendar';
 import BookingDialog from './components/BookingDialog';
 import AdminDashboard from './components/AdminDashboard';
 import { BookingData, BlockedDate } from './types';
-import { BookOpen, MapPin, Mail, Sparkles, Clock, Users, AlertCircle, Lock, ShieldCheck, ChevronLeft, Loader2, UserPlus } from 'lucide-react';
+import { BookOpen, MapPin, Mail, Sparkles, Clock, Users, AlertCircle, Lock, ShieldCheck, ChevronLeft, Loader2, UserPlus, GraduationCap } from 'lucide-react';
 import { db, auth } from './firebase';
 import { collection, onSnapshot, query, orderBy, getDoc, doc } from 'firebase/firestore';
 import { 
@@ -16,6 +16,7 @@ import {
 } from './firebase';
 import ErrorBoundary from './components/ErrorBoundary';
 import { handleFirestoreError, OperationType } from './services/firestore';
+import SobralLogo from './components/SobralLogo';
 
 const App: React.FC = () => {
   const [view, setView] = useState<'public' | 'admin-login' | 'admin'>('public');
@@ -176,9 +177,9 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-6 relative overflow-hidden">
         {/* Elementos Decorativos de Fundo */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-[#1e40af]"></div>
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#1e40af]/5 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-0 left-0 w-full h-1 bg-[#800000]"></div>
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-[#800000]/5 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-red-500/5 rounded-full blur-3xl"></div>
 
         <div className="w-full max-w-md relative z-10">
           <button 
@@ -190,8 +191,8 @@ const App: React.FC = () => {
 
           <div className="bg-white p-12 rounded-[3rem] shadow-2xl shadow-slate-200/60 border border-slate-100 space-y-10">
             <div className="text-center space-y-4">
-              <div className="bg-[#1e40af] w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto text-white shadow-2xl shadow-blue-900/30 rotate-6 overflow-hidden">
-                <img src="https://i.postimg.cc/x881K4FF/Logo_emprestimo.png" alt="Logo" className="w-12 h-12 object-contain" referrerPolicy="no-referrer" />
+              <div className="bg-[#800000] w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto text-white shadow-2xl shadow-red-900/30 rotate-6 overflow-hidden">
+                <SobralLogo size={40} className="text-white" />
               </div>
               <div className="space-y-1">
                 <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">Área Privada</h2>
@@ -202,13 +203,13 @@ const App: React.FC = () => {
             <div className="flex bg-slate-100 p-1 rounded-2xl mb-6">
               <button 
                 onClick={() => setLoginMethod('google')}
-                className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loginMethod === 'google' ? 'bg-white text-[#1e40af] shadow-sm' : 'text-slate-400'}`}
+                className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loginMethod === 'google' ? 'bg-white text-[#800000] shadow-sm' : 'text-slate-400'}`}
               >
                 Google
               </button>
               <button 
                 onClick={() => setLoginMethod('email')}
-                className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loginMethod === 'email' ? 'bg-white text-[#1e40af] shadow-sm' : 'text-slate-400'}`}
+                className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${loginMethod === 'email' ? 'bg-white text-[#800000] shadow-sm' : 'text-slate-400'}`}
               >
                 E-mail
               </button>
@@ -230,7 +231,7 @@ const App: React.FC = () => {
                       type="email" 
                       value={adminEmail} 
                       onChange={e => setAdminEmail(e.target.value)}
-                      className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#1e40af] focus:bg-white outline-none transition-all font-bold text-sm"
+                      className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#800000] focus:bg-white outline-none transition-all font-bold text-sm"
                       placeholder="seu@email.com"
                     />
                   </div>
@@ -241,7 +242,7 @@ const App: React.FC = () => {
                       type="password" 
                       value={adminPassword} 
                       onChange={e => setAdminPassword(e.target.value)}
-                      className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#1e40af] focus:bg-white outline-none transition-all font-bold text-sm"
+                      className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#800000] focus:bg-white outline-none transition-all font-bold text-sm"
                       placeholder="••••••••"
                     />
                   </div>
@@ -254,7 +255,7 @@ const App: React.FC = () => {
                     type="password" 
                     value={adminPassword} 
                     onChange={e => setAdminPassword(e.target.value)}
-                    className="w-full px-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#1e40af] focus:bg-white outline-none transition-all text-center text-2xl font-black tracking-[0.5em] placeholder:tracking-normal"
+                    className="w-full px-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#800000] focus:bg-white outline-none transition-all text-center text-2xl font-black tracking-[0.5em] placeholder:tracking-normal"
                     placeholder="••••"
                   />
                 </div>
@@ -262,7 +263,7 @@ const App: React.FC = () => {
               <button 
                 type="submit" 
                 disabled={isLoading}
-                className="w-full bg-[#1e40af] text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-900 transition-all shadow-xl shadow-blue-900/10 active:scale-95 flex items-center justify-center disabled:bg-slate-300"
+                className="w-full bg-[#800000] text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-900 transition-all shadow-xl shadow-red-900/10 active:scale-95 flex items-center justify-center disabled:bg-slate-300"
               >
                 {isLoading ? <Loader2 className="animate-spin mr-2" size={18} /> : 'Autenticar Painel'}
               </button>
@@ -279,11 +280,11 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-40 backdrop-blur-md bg-white/80">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="bg-[#1e40af] p-2 rounded-xl shadow-lg shadow-blue-900/20 rotate-2 overflow-hidden">
-              <img src="https://i.postimg.cc/x881K4FF/Logo_emprestimo.png" alt="Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
+            <div className="bg-red-50 p-2.5 rounded-2xl">
+              <SobralLogo size={32} className="text-[#800000]" />
             </div>
             <div className="flex flex-col">
               <h1 className="text-lg font-black text-slate-900 tracking-tighter leading-none uppercase">Biblioteca Municipal de Sobral</h1>
@@ -298,18 +299,18 @@ const App: React.FC = () => {
                 setView('admin-login');
               }
             }}
-            className="group flex items-center space-x-3 bg-slate-50 hover:bg-slate-900 px-5 py-2.5 rounded-xl transition-all border border-slate-100"
+            className="group flex items-center space-x-3 bg-slate-50 hover:bg-[#800000] px-5 py-2.5 rounded-xl transition-all border border-slate-100"
           >
-            <Lock size={14} className="text-[#1e40af] group-hover:text-white transition-colors" /> 
+            <Lock size={14} className="text-[#800000] group-hover:text-white transition-colors" /> 
             <span className="text-[10px] font-black text-slate-400 group-hover:text-white uppercase tracking-widest">Acesso Equipe</span>
           </button>
         </div>
       </header>
 
       <section className="bg-white border-b border-slate-200 py-16 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#1e40af]/5 rounded-full -mr-48 -mt-48 blur-3xl"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#800000]/5 rounded-full -mr-48 -mt-48 blur-3xl"></div>
         <div className="max-w-5xl mx-auto px-6 text-center space-y-6 relative z-10">
-          <h2 className="text-5xl font-black text-slate-900 tracking-tighter uppercase leading-[0.9]">Agendamento de <br/> <span className="text-[#1e40af]">Visitas Guiadas</span></h2>
+          <h2 className="text-5xl font-black text-slate-900 tracking-tighter uppercase leading-[0.9]">Agendamento de <br/> <span className="text-[#800000]">Visitas Guiadas</span></h2>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium leading-relaxed">
             Abra as portas do conhecimento para seus alunos. <br/>
             Selecione uma data no calendário abaixo para iniciar sua solicitação.
@@ -324,21 +325,21 @@ const App: React.FC = () => {
               <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100 pb-4">Diretrizes de Visita</h3>
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
-                  <div className="bg-blue-50 p-2.5 rounded-xl"><Clock size={18} className="text-[#1e40af]" /></div>
+                  <div className="bg-red-50 p-2.5 rounded-xl"><Clock size={18} className="text-[#800000]" /></div>
                   <div><p className="text-xs font-black uppercase text-slate-800 tracking-wider">Horários</p><p className="text-sm text-slate-500 font-medium">08:00 às 16:00</p></div>
                 </div>
                 <div className="flex items-start space-x-4">
-                  <div className="bg-blue-50 p-2.5 rounded-xl"><Users size={18} className="text-[#1e40af]" /></div>
+                  <div className="bg-red-50 p-2.5 rounded-xl"><Users size={18} className="text-[#800000]" /></div>
                   <div><p className="text-xs font-black uppercase text-slate-800 tracking-wider">Capacidade</p><p className="text-sm text-slate-500 font-medium">Máximo 40 pessoas</p></div>
                 </div>
                 <div className="flex items-start space-x-4">
-                  <div className="bg-blue-50 p-2.5 rounded-xl"><MapPin size={18} className="text-[#1e40af]" /></div>
+                  <div className="bg-red-50 p-2.5 rounded-xl"><MapPin size={18} className="text-[#800000]" /></div>
                   <div><p className="text-xs font-black uppercase text-slate-800 tracking-wider">Endereço</p><p className="text-sm text-slate-500 font-medium leading-snug">R. Randal Pompeu, S/N - Centro, Sobral</p></div>
                 </div>
               </div>
 
               <div className="pt-4">
-                 <div className="bg-slate-900 rounded-2xl p-5 text-white">
+                 <div className="bg-[#800000] rounded-2xl p-5 text-white shadow-xl shadow-red-900/20">
                     <p className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-60 italic">Dica Importante</p>
                     <p className="text-xs font-medium leading-relaxed">Agende com pelo menos 48h de antecedência para garantir a melhor experiência para seu grupo.</p>
                  </div>
@@ -346,18 +347,18 @@ const App: React.FC = () => {
             </div>
             
             {error && (
-              <div className="bg-blue-50 border-2 border-blue-100 p-6 rounded-2xl flex items-start space-x-4 shadow-xl shadow-blue-900/5 animate-bounce">
-                <AlertCircle className="text-blue-600 flex-shrink-0" size={24} />
+              <div className="bg-red-50 border-2 border-red-100 p-6 rounded-2xl flex items-start space-x-4 shadow-xl shadow-red-900/5 animate-bounce">
+                <AlertCircle className="text-red-600 flex-shrink-0" size={24} />
                 <div>
-                  <p className="text-[10px] font-black text-blue-800 uppercase tracking-widest mb-1">Status do Sistema</p>
-                  <p className="text-xs font-bold text-blue-700 leading-tight">{error}</p>
+                  <p className="text-[10px] font-black text-red-800 uppercase tracking-widest mb-1">Status do Sistema</p>
+                  <p className="text-xs font-bold text-red-700 leading-tight">{error}</p>
                 </div>
               </div>
             )}
           </div>
 
           <div className="lg:col-span-9 relative">
-            {isLoading && <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center rounded-[2.5rem]"><Loader2 className="animate-spin text-[#1e40af] mb-4" size={48} /><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Sincronizando Agenda</p></div>}
+            {isLoading && <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center rounded-[2.5rem]"><Loader2 className="animate-spin text-[#800000] mb-4" size={48} /><p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Sincronizando Agenda</p></div>}
             <Calendar 
               onSelectDate={(date) => { setSelectedDate(date); setShowDialog(true); }} 
               selectedDate={selectedDate} 
@@ -370,8 +371,8 @@ const App: React.FC = () => {
 
       <footer className="bg-slate-900 text-white py-16 mt-auto">
         <div className="max-w-7xl mx-auto px-6 flex flex-col items-center space-y-8 text-center">
-          <div className="flex items-center space-x-3 opacity-40">
-            <img src="https://i.postimg.cc/x881K4FF/Logo_emprestimo.png" alt="Logo" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
+          <div className="flex items-center space-x-4 opacity-40">
+            <SobralLogo size={32} className="text-white" />
             <div className="h-4 w-px bg-white"></div>
             <span className="text-[10px] font-black uppercase tracking-[0.4em]">Sobral Ceará</span>
           </div>

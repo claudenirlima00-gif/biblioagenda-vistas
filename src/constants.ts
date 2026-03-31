@@ -10,7 +10,15 @@ export const TIME_SLOTS: TimeSlot[] = [
   { start: '15:00', end: '16:00' },
 ];
 
-export const TURMAS: Turma[] = Object.values(Turma);
+export const TURMAS: Turma[] = [
+  Turma.INFANTIL,
+  Turma.FUNDAMENTAL_1,
+  Turma.FUNDAMENTAL_2,
+  Turma.ENSINO_MEDIO,
+  Turma.EJA,
+  Turma.UNIVERSITARIO,
+  Turma.OUTROS
+];
 
 // Brazilian National Holidays 2026
 export const BRAZILIAN_HOLIDAYS: Holiday[] = [
