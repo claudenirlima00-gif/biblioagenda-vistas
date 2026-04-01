@@ -191,7 +191,7 @@ const App: React.FC = () => {
 
           <div className="bg-white p-12 rounded-[3rem] shadow-2xl shadow-slate-200/60 border border-slate-100 space-y-10">
             <div className="text-center space-y-4">
-              <div className="bg-[var(--color-primary)] w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto text-white shadow-2xl shadow-maroon-900/30 rotate-6 overflow-hidden">
+              <div className="bg-[var(--color-primary)] w-20 h-20 rounded-[2rem] flex items-center justify-center mx-auto text-white shadow-2xl shadow-blue-600/30 rotate-6 overflow-hidden">
                 <SobralLogo size={40} className="text-white" />
               </div>
               <div className="space-y-1">
@@ -263,7 +263,7 @@ const App: React.FC = () => {
               <button 
                 type="submit" 
                 disabled={isLoading}
-                className="w-full bg-[var(--color-primary)] text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-900 transition-all shadow-xl shadow-maroon-900/10 active:scale-95 flex items-center justify-center disabled:bg-slate-300"
+                className="w-full bg-[var(--color-primary)] text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-900 transition-all shadow-xl shadow-blue-900/10 active:scale-95 flex items-center justify-center disabled:bg-slate-300"
               >
                 {isLoading ? <Loader2 className="animate-spin mr-2" size={18} /> : 'Autenticar Painel'}
               </button>
@@ -339,7 +339,7 @@ const App: React.FC = () => {
               </div>
 
               <div className="pt-4">
-                 <div className="bg-[var(--color-primary)] rounded-2xl p-5 text-white shadow-xl shadow-maroon-900/20">
+                 <div className="bg-[var(--color-primary)] rounded-2xl p-5 text-white shadow-xl shadow-blue-600/20">
                     <p className="text-[10px] font-black uppercase tracking-widest mb-1 opacity-60 italic">Dica Importante</p>
                     <p className="text-xs font-medium leading-relaxed">Agende com pelo menos 48h de antecedência para garantir a melhor experiência para seu grupo.</p>
                  </div>
@@ -347,7 +347,7 @@ const App: React.FC = () => {
             </div>
             
             {error && (
-              <div className="bg-[var(--color-primary-light)] border-2 border-[var(--color-primary-light)] p-6 rounded-2xl flex items-start space-x-4 shadow-xl shadow-maroon-900/5 animate-bounce">
+              <div className="bg-[var(--color-primary-light)] border-2 border-[var(--color-primary-light)] p-6 rounded-2xl flex items-start space-x-4 shadow-xl shadow-blue-600/5 animate-bounce">
                 <AlertCircle className="text-[var(--color-primary)] flex-shrink-0" size={24} />
                 <div>
                   <p className="text-[10px] font-black text-[var(--color-primary)] uppercase tracking-widest mb-1">Status do Sistema</p>

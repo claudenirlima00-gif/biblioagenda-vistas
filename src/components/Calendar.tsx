@@ -126,7 +126,7 @@ const Calendar: React.FC<CalendarProps> = ({ onSelectDate, selectedDate, booking
             `}
             onClick={() => !isDisabled && onSelectDate(cloneDay)}
           >
-            <span className={`text-sm font-semibold inline-flex items-center justify-center w-8 h-8 rounded-full ${isSameDay(day, today) ? 'text-white bg-[var(--color-primary)] shadow-md shadow-maroon-900/30' : ''}`}>
+            <span className={`text-sm font-semibold inline-flex items-center justify-center w-8 h-8 rounded-full ${isSameDay(day, today) ? 'text-white bg-[var(--color-primary)] shadow-md shadow-blue-600/30' : ''}`}>
               {formattedDate}
             </span>
             

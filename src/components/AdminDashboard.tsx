@@ -331,7 +331,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* Sidebar Navigation */}
       <aside className="w-72 bg-white border-r border-slate-200 flex flex-col sticky top-0 h-screen shrink-0">
         <div className="p-8 flex items-center space-x-4 border-b border-slate-100">
-          <div className="bg-[var(--color-primary)] p-2 rounded-xl text-white shadow-lg shadow-maroon-900/20 rotate-3 overflow-hidden shrink-0">
+          <div className="bg-[var(--color-primary)] p-2 rounded-xl text-white shadow-lg shadow-blue-600/20 rotate-3 overflow-hidden shrink-0">
             <SobralLogo size={32} className="text-white" />
           </div>
           <div>
@@ -345,7 +345,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-maroon-900/20' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'}`}
+              className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-blue-600/20' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'}`}
             >
               <div className="flex items-center space-x-3">
                 {getTabIcon(tab)}
@@ -390,7 +390,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {activeTab === 'blocked' && (
               <button 
                 onClick={() => setShowBlockModal(true)}
-                className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-maroon-900/20 flex items-center"
+                className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-blue-600/20 flex items-center"
               >
                 <Plus size={16} className="mr-2" /> Bloquear Data
               </button>
@@ -399,7 +399,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {activeTab === 'team' && isMasterAdmin && (
               <button 
                 onClick={() => setShowAddUserModal(true)}
-                className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-maroon-900/20 flex items-center"
+                className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-blue-600/20 flex items-center"
               >
                 <UserPlus size={16} className="mr-2" /> Adicionar Membro
               </button>
@@ -541,7 +541,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                              <button 
                                disabled={isProcessing}
                                onClick={(e) => { e.stopPropagation(); setSelectedBooking(req); setShowRejectionModal(true); }}
-                               className="bg-[var(--color-primary-hover)] text-white p-3 rounded-xl hover:bg-slate-900 transition-all shadow-lg shadow-maroon-900/20 disabled:bg-slate-200"
+                               className="bg-[var(--color-primary-hover)] text-white p-3 rounded-xl hover:bg-slate-900 transition-all shadow-lg shadow-blue-600/20 disabled:bg-slate-200"
                              >
                                <X size={20} />
                              </button>
@@ -573,7 +573,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
             <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <div className="flex items-center space-x-4">
-                <div className="bg-[var(--color-primary)] p-3 rounded-2xl text-white shadow-xl shadow-maroon-900/20">
+                <div className="bg-[var(--color-primary)] p-3 rounded-2xl text-white shadow-xl shadow-blue-600/20">
                   <FileText size={24} />
                 </div>
                 <div>
@@ -690,7 +690,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button 
                 disabled={isProcessing}
                 onClick={() => handleDelete(showDeleteConfirm)}
-                className="w-full py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-maroon-900/20 transition-all flex items-center justify-center"
+                className="w-full py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-blue-600/20 transition-all flex items-center justify-center"
               >
                 {isProcessing ? <Loader2 className="animate-spin mr-2" size={14} /> : <Trash2 size={14} className="mr-2" />}
                 Confirmar Exclusão
@@ -779,7 +779,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <button 
                   type="submit"
                   disabled={isProcessing}
-                  className="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-maroon-900/20 transition-all flex items-center justify-center"
+                  className="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-blue-600/20 transition-all flex items-center justify-center"
                 >
                   {isProcessing ? <Loader2 className="animate-spin mr-2" size={14} /> : <Check size={14} className="mr-2" />}
                   Autorizar
@@ -839,7 +839,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button 
                 onClick={handleReject}
                 disabled={!rejectionReason}
-                className="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-maroon-900/20 transition-all disabled:bg-slate-200 disabled:shadow-none"
+                className="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-blue-600/20 transition-all disabled:bg-slate-200 disabled:shadow-none"
               >
                 Confirmar Rejeição
               </button>
@@ -923,7 +923,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </button>
               <button 
                 onClick={() => handleRemoveUser(showUserRemoveConfirm)}
-                className="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-maroon-900/20 transition-all"
+                className="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-blue-600/20 transition-all"
               >
                 Remover
               </button>
@@ -950,7 +950,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </button>
               <button 
                 onClick={() => handleRemoveBlock(showBlockRemoveConfirm)}
-                className="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-maroon-900/20 transition-all"
+                className="flex-1 py-4 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-blue-600/20 transition-all"
               >
                 Desbloquear
               </button>

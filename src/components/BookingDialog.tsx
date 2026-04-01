@@ -190,7 +190,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
 
               <div className="flex items-center space-x-3 pt-4">
                  <button type="button" onClick={() => setStep('slot')} className="px-6 py-4 border-2 border-slate-100 rounded-2xl font-bold text-slate-400 uppercase tracking-widest text-xs hover:bg-slate-50 transition-all">Voltar</button>
-                 <button type="submit" disabled={isSubmitting} className="flex-grow py-4 bg-[var(--color-primary)] text-white font-black uppercase tracking-widest text-xs rounded-2xl flex items-center justify-center disabled:bg-slate-400 shadow-xl shadow-maroon-900/20 active:scale-95 transition-all">
+                 <button type="submit" disabled={isSubmitting} className="flex-grow py-4 bg-[var(--color-primary)] text-white font-black uppercase tracking-widest text-xs rounded-2xl flex items-center justify-center disabled:bg-slate-400 shadow-xl shadow-blue-600/20 active:scale-95 transition-all">
                   {isSubmitting ? <><Loader2 className="animate-spin mr-2" size={18} /> Processando...</> : 'Finalizar Agendamento'}
                 </button>
               </div>
