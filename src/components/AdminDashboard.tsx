@@ -281,7 +281,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (!selectedBooking) return;
 
     const date = format(new Date(selectedBooking.dateString + 'T12:00:00'), 'dd/MM/yyyy');
-    const text = `*DETALHES DA SOLICITAÇÃO - BIBLIOTECA DE SOBRAL*\n\n` +
+    const text = `*✅ VISITA CONFIRMADA - BIBLIOTECA DE SOBRAL*\n\n` +
                  `*Instituição:* _${selectedBooking.institutionName}_\n` +
                  `*Responsável:* _${selectedBooking.responsibleName}_\n` +
                  `*E-mail:* _${selectedBooking.email}_\n` +
@@ -682,12 +682,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 >
                   <Trash2 size={14} className="mr-2" /> Excluir Registro
                 </button>
-                <button 
-                  onClick={copyToWhatsApp}
-                  className="text-green-600 hover:text-green-700 text-[10px] font-black uppercase tracking-widest flex items-center bg-green-50 px-4 py-2 rounded-xl border border-green-100 transition-all active:scale-95"
-                >
-                  <MessageSquare size={14} className="mr-2" /> Copiar WhatsApp
-                </button>
+                {selectedBooking.status === 'confirmed' && (
+                  <button 
+                    onClick={copyToWhatsApp}
+                    className="text-green-600 hover:text-green-700 text-[10px] font-black uppercase tracking-widest flex items-center bg-green-50 px-4 py-2 rounded-xl border border-green-100 transition-all active:scale-95"
+                  >
+                    <MessageSquare size={14} className="mr-2" /> Copiar WhatsApp
+                  </button>
+                )}
               </div>
               
               <div className="flex space-x-3">
