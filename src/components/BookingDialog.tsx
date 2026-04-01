@@ -30,7 +30,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, rescheduleBookingId
     responsibleName: '',
     institutionName: '',
     email: '',
-    turma: Turma.INFANTIL,
+    turma: '' as unknown as Turma,
     quantity: '' as unknown as number,
     objective: ''
   });
@@ -89,6 +89,10 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, rescheduleBookingId
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSlot) return;
+    if (!formData.turma) {
+      setError("Por favor, selecione a turma/nível.");
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
@@ -104,15 +108,15 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, rescheduleBookingId
         createdAt: rescheduleBookingId ? undefined : new Date().toISOString()
       };
 
+      const cleanData = Object.fromEntries(Object.entries(bookingData).filter(([_, v]) => v !== undefined));
       let finalId = rescheduleBookingId;
 
       if (rescheduleBookingId) {
         // Atualizar no Firestore
-        const cleanData = Object.fromEntries(Object.entries(bookingData).filter(([_, v]) => v !== undefined));
         await updateDoc(doc(db, 'bookings', rescheduleBookingId), cleanData);
       } else {
         // Salvar no Firestore
-        const docRef = await addDoc(collection(db, 'bookings'), bookingData);
+        const docRef = await addDoc(collection(db, 'bookings'), cleanData);
         finalId = docRef.id;
       }
 
@@ -227,6 +231,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, rescheduleBookingId
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center"><GraduationCap size={12} className="mr-1" /> Turma / Nível</label>
                   <select required disabled={isSubmitting} value={formData.turma} onChange={e => setFormData(prev => ({ ...prev, turma: e.target.value as Turma }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[var(--color-primary)] outline-none transition-all font-medium appearance-none">
+                    <option value="" disabled>Selecione o nível...</option>
                     {TURMAS.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
