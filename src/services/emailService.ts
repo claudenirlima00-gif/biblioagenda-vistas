@@ -15,8 +15,9 @@ const EMAILJS_TEMPLATE_ADMIN_ID = "template_jesqp2k"; // Resposta da Biblioteca
 const EMAILJS_TEMPLATE_USER_ID = "template_he4tp65"; // Solicitação Recebida
 const EMAILJS_PUBLIC_KEY = "8EJ2mcLgNsLIuqClY";
 
-export const sendBookingEmail = async (to: string, status: 'pending' | 'confirmed' | 'rejected', details?: { responsibleName?: string, institutionName?: string, reason?: string, date?: string, time?: string, details?: string }) => {
+export const sendBookingEmail = async (to: string, status: 'pending' | 'confirmed' | 'rejected', details?: { id?: string, responsibleName?: string, institutionName?: string, reason?: string, date?: string, time?: string, details?: string }) => {
   const libraryEmail = "biblioteca@sobral.ce.gov.br";
+  const rescheduleUrl = details?.id ? `${window.location.origin}/?reschedule=${details.id}` : "";
   
   const statusLabel = status === 'confirmed' ? "CONFIRMADA" : status === 'rejected' ? "REJEITADA" : "RECEBIDA (AGUARDANDO CONFIRMAÇÃO)";
   const statusColor = status === 'confirmed' ? "#059669" : status === 'rejected' ? "#1e40af" : "#2563eb";
@@ -39,6 +40,7 @@ export const sendBookingEmail = async (to: string, status: 'pending' | 'confirme
       templateId,
       {
         to_email: to,
+        reschedule_url: rescheduleUrl,
         // Versões em CamelCase (minha sugestão inicial)
         responsibleName: details?.responsibleName || 'Responsável',
         institutionName: details?.institutionName || 'Instituição',

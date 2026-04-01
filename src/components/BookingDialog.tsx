@@ -6,7 +6,7 @@ import { X, Clock, Users, Building2, User, Mail, FileText, Loader2, ShieldCheck,
 import { TIME_SLOTS, TURMAS } from '../constants';
 import { TimeSlot, Turma, BookingData } from '../types';
 import { db } from '../firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../services/firestore';
 import SobralLogo from './SobralLogo';
 
@@ -14,16 +14,18 @@ import { sendBookingEmail } from '../services/emailService';
 
 interface BookingDialogProps {
   date: Date;
+  rescheduleBookingId?: string;
   existingBookings: BookingData[];
   onClose: () => void;
   onComplete: () => void;
 }
 
-const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, onClose, onComplete }) => {
-  const [step, setStep] = useState<'slot' | 'form' | 'success'>('slot');
+const BookingDialog: React.FC<BookingDialogProps> = ({ date, rescheduleBookingId, existingBookings, onClose, onComplete }) => {
+  const [step, setStep] = useState<'slot' | 'form' | 'success' | 'loading'> (rescheduleBookingId ? 'loading' : 'slot');
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState<Date>(date);
   const [formData, setFormData] = useState({
     responsibleName: '',
     institutionName: '',
@@ -33,9 +35,44 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
     objective: ''
   });
 
+  // Carregar dados se for remarcação
+  React.useEffect(() => {
+    if (rescheduleBookingId) {
+      const fetchBooking = async () => {
+        try {
+          const bookingDoc = await getDoc(doc(db, 'bookings', rescheduleBookingId));
+          if (bookingDoc.exists()) {
+            const data = bookingDoc.data();
+            setFormData({
+              responsibleName: data.responsibleName,
+              institutionName: data.institutionName,
+              email: data.email,
+              turma: data.turma,
+              quantity: data.quantity,
+              objective: data.objective
+            });
+            setRescheduleDate(new Date(data.dateString + 'T12:00:00'));
+            setStep('slot');
+          } else {
+            setError("Agendamento não encontrado para remarcação.");
+            setStep('slot');
+          }
+        } catch (err) {
+          console.error("Erro ao carregar agendamento:", err);
+          setError("Erro ao carregar dados do agendamento.");
+          setStep('slot');
+        }
+      };
+      fetchBooking();
+    }
+  }, [rescheduleBookingId]);
+
   const getSlotBooking = (slot: TimeSlot) => {
-    const targetDateString = format(date, 'yyyy-MM-dd');
+    const targetDateString = format(rescheduleBookingId ? rescheduleDate : date, 'yyyy-MM-dd');
     return existingBookings.find(b => {
+      // Ignorar o próprio agendamento se estiver remarcando
+      if (rescheduleBookingId && b.id === rescheduleBookingId) return false;
+      
       return b.dateString === targetDateString && 
              b.slot.start === slot.start && 
              b.slot.end === slot.end &&
@@ -58,29 +95,40 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
     
     try {
       const bookingData = {
-        dateString: format(date, 'yyyy-MM-dd'),
+        dateString: format(rescheduleBookingId ? rescheduleDate : date, 'yyyy-MM-dd'),
         slot: selectedSlot,
         ...formData,
         quantity: Number(formData.quantity),
         status: 'pending',
-        createdAt: new Date().toISOString()
+        updatedAt: rescheduleBookingId ? new Date().toISOString() : undefined,
+        createdAt: rescheduleBookingId ? undefined : new Date().toISOString()
       };
 
-      // Salvar no Firestore
-      await addDoc(collection(db, 'bookings'), bookingData);
+      let finalId = rescheduleBookingId;
+
+      if (rescheduleBookingId) {
+        // Atualizar no Firestore
+        const cleanData = Object.fromEntries(Object.entries(bookingData).filter(([_, v]) => v !== undefined));
+        await updateDoc(doc(db, 'bookings', rescheduleBookingId), cleanData);
+      } else {
+        // Salvar no Firestore
+        const docRef = await addDoc(collection(db, 'bookings'), bookingData);
+        finalId = docRef.id;
+      }
 
       // Enviar e-mail de confirmação de recebimento
       await sendBookingEmail(formData.email, 'pending', {
+        id: finalId,
         responsibleName: formData.responsibleName,
         institutionName: formData.institutionName,
-        date: format(date, 'dd/MM/yyyy'),
+        date: format(rescheduleBookingId ? rescheduleDate : date, 'dd/MM/yyyy'),
         time: selectedSlot.start
       });
 
       setStep('success');
     } catch (err: any) {
       console.error("Erro Firestore:", err);
-      handleFirestoreError(err, OperationType.CREATE, 'bookings');
+      handleFirestoreError(err, rescheduleBookingId ? OperationType.UPDATE : OperationType.CREATE, 'bookings');
       setError("Erro ao salvar agendamento no servidor. Verifique sua conexão.");
     } finally {
       setIsSubmitting(false);
@@ -91,7 +139,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
       <div className={`bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col transition-all duration-300 border border-slate-100`}>
         
-        {step !== 'success' && (
+        {step !== 'success' && step !== 'loading' && (
           <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
             <div className="flex items-center space-x-4">
               <div className="bg-[var(--color-primary-light)] p-2.5 rounded-2xl">
@@ -99,10 +147,10 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
               </div>
               <div>
                 <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">
-                  Solicitar Visita
+                  {rescheduleBookingId ? 'Remarcar Visita' : 'Solicitar Visita'}
                 </h3>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                   {format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                   {format(rescheduleBookingId ? rescheduleDate : date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                 </p>
               </div>
             </div>
@@ -113,6 +161,13 @@ const BookingDialog: React.FC<BookingDialogProps> = ({ date, existingBookings, o
         )}
 
         <div className="overflow-y-auto">
+          {step === 'loading' && (
+            <div className="p-20 flex flex-col items-center justify-center space-y-4">
+              <Loader2 className="animate-spin text-[var(--color-primary)]" size={48} />
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Carregando dados...</p>
+            </div>
+          )}
+
           {error && (
             <div className="mx-6 mt-6 p-4 bg-[var(--color-primary-light)] border-2 border-[var(--color-primary-light)] rounded-2xl flex items-start space-x-3 animate-in slide-in-from-top duration-300">
               <AlertCircle className="text-[var(--color-primary)] flex-shrink-0" size={20} />

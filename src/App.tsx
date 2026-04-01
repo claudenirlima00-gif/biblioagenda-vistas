@@ -32,8 +32,18 @@ const App: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [rescheduleId, setRescheduleId] = useState<string | null>(null);
 
   useEffect(() => {
+    // Verificar se há um pedido de remarcação na URL
+    const params = new URLSearchParams(window.location.search);
+    const reschedId = params.get('reschedule');
+    if (reschedId) {
+      setRescheduleId(reschedId);
+      // Limpar a URL para não ficar com o parâmetro visível
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     // Monitorar estado de autenticação
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -380,13 +390,14 @@ const App: React.FC = () => {
         </div>
       </footer>
 
-      {showDialog && selectedDate && (
+      { (showDialog || rescheduleId) && (
         <ErrorBoundary>
           <BookingDialog 
-            date={selectedDate} 
+            date={selectedDate || new Date()} 
+            rescheduleBookingId={rescheduleId || undefined}
             existingBookings={allBookings}
-            onClose={() => { setShowDialog(false); setSelectedDate(null); }}
-            onComplete={() => { setShowDialog(false); setSelectedDate(null); }}
+            onClose={() => { setShowDialog(false); setSelectedDate(null); setRescheduleId(null); }}
+            onComplete={() => { setShowDialog(false); setSelectedDate(null); setRescheduleId(null); }}
           />
         </ErrorBoundary>
       )}

@@ -20,6 +20,7 @@ service cloud.firestore {
     //   - rejectionReason: string (optional)
     //   - rejectionDetails: string (optional)
     //   - createdAt: string (required, ISO date-time)
+    //   - updatedAt: string (optional, ISO date-time)
     //
     // Collection: blocked_dates
     // Fields:
@@ -78,7 +79,8 @@ service cloud.firestore {
              data.quantity is number &&
              data.objective is string &&
              data.status in ['pending', 'confirmed', 'rejected'] &&
-             data.createdAt is string;
+             data.createdAt is string &&
+             (!('updatedAt' in data) || data.updatedAt is string);
     }
 
     function isValidBlockedDate(data) {
@@ -96,8 +98,18 @@ service cloud.firestore {
       // Public can create a booking request
       allow create: if isValidBooking(request.resource.data) && request.resource.data.status == 'pending';
       
-      // Staff can update (confirm/reject)
-      allow update: if isStaff() && isValidBooking(request.resource.data);
+      // Update rules
+      allow update: if 
+        // 1. Staff can update (confirm/reject)
+        (isStaff() && isValidBooking(request.resource.data)) ||
+        // 2. Public Reschedule
+        (
+          isValidBooking(request.resource.data) &&
+          request.resource.data.status == 'pending' && // Reschedule always resets to pending
+          request.resource.data.email == resource.data.email && // Must match original email
+          request.resource.data.createdAt == resource.data.createdAt && // Immutable
+          resource.data.status in ['pending', 'confirmed'] // Only allow rescheduling if not already rejected
+        );
       
       // Only admin can delete
       allow delete: if isAdmin();

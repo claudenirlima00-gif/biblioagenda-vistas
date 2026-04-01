@@ -10,7 +10,7 @@ import { sendBookingEmail } from '../services/emailService';
 import SobralLogo from './SobralLogo';
 import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signOut as signOutAuth } from 'firebase/auth';
-import firebaseConfig from '../firebase-applet-config.json';
+import firebaseConfig from '../../firebase-applet-config.json';
 import { 
   CheckCircle2, 
   Clock, 
@@ -60,6 +60,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
+  const [editingBlock, setEditingBlock] = useState<BlockedDate | null>(null);
   
   useEffect(() => {
     if (feedbackMessage) {
@@ -177,6 +178,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       
       // Enviar e-mail real (simulado)
       await sendBookingEmail(booking.email, 'confirmed', {
+        id: id,
         responsibleName: booking.responsibleName,
         institutionName: booking.institutionName,
         date: format(new Date(booking.dateString + 'T12:00:00'), 'dd/MM/yyyy'),
@@ -207,6 +209,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       
       // Enviar e-mail real (simulado)
       await sendBookingEmail(selectedBooking.email, 'rejected', {
+        id: selectedBooking.id,
         responsibleName: selectedBooking.responsibleName,
         institutionName: selectedBooking.institutionName,
         reason: rejectionReason,
@@ -242,35 +245,58 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  const handleAddBlock = async (e: React.FormEvent) => {
+  const handleSaveBlock = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!blockDate || !blockReason) return;
-
-    if (blockedDates.some(b => b.dateString === blockDate)) {
-      setFeedbackMessage({ text: "Esta data já está bloqueada.", type: 'error' });
-      return;
-    }
 
     setIsProcessing(true);
     try {
       const newBlock: BlockedDate = {
         dateString: blockDate,
         reason: blockReason,
-        createdAt: new Date().toISOString()
+        createdAt: editingBlock?.createdAt || new Date().toISOString()
       };
+
+      if (editingBlock && editingBlock.dateString !== blockDate) {
+        // Se a data mudou, precisamos deletar o antigo e criar o novo (pois a data é o ID)
+        await deleteDoc(doc(db, 'blocked_dates', editingBlock.dateString));
+      }
 
       // Usar a data como ID para facilitar a remoção
       await setDoc(doc(db, 'blocked_dates', blockDate), newBlock);
       
       setShowBlockModal(false);
+      setEditingBlock(null);
       setBlockReason('');
-      setFeedbackMessage({ text: "Data bloqueada com sucesso!", type: 'success' });
+      setFeedbackMessage({ text: editingBlock ? "Bloqueio atualizado com sucesso!" : "Data bloqueada com sucesso!", type: 'success' });
     } catch (err) {
       handleFirestoreError(err, OperationType.WRITE, 'blocked_dates');
-      setFeedbackMessage({ text: "Erro ao bloquear data.", type: 'error' });
+      setFeedbackMessage({ text: "Erro ao salvar bloqueio.", type: 'error' });
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const copyToWhatsApp = () => {
+    if (!selectedBooking) return;
+
+    const date = format(new Date(selectedBooking.dateString + 'T12:00:00'), 'dd/MM/yyyy');
+    const text = `*DETALHES DA SOLICITAÇÃO - BIBLIOTECA DE SOBRAL*\n\n` +
+                 `*Instituição:* _${selectedBooking.institutionName}_\n` +
+                 `*Responsável:* _${selectedBooking.responsibleName}_\n` +
+                 `*E-mail:* _${selectedBooking.email}_\n` +
+                 `*Data:* _${date}_\n` +
+                 `*Horário:* _${selectedBooking.slot.start}_\n` +
+                 `*Público:* _${selectedBooking.turma}_\n` +
+                 `*Qtd. Pessoas:* _${selectedBooking.quantity}_\n\n` +
+                 `*Objetivo Pedagógico:*\n_${selectedBooking.objective}_`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      setFeedbackMessage({ text: "Copiado para o WhatsApp!", type: 'success' });
+    }).catch(err => {
+      console.error('Erro ao copiar:', err);
+      setFeedbackMessage({ text: "Erro ao copiar texto.", type: 'error' });
+    });
   };
 
   const [showBlockRemoveConfirm, setShowBlockRemoveConfirm] = useState<string | null>(null);
@@ -389,7 +415,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <div className="flex items-center space-x-4">
             {activeTab === 'blocked' && (
               <button 
-                onClick={() => setShowBlockModal(true)}
+                onClick={() => {
+                  setEditingBlock(null);
+                  setBlockDate(format(addDays(new Date(), 1), 'yyyy-MM-dd'));
+                  setBlockReason('');
+                  setShowBlockModal(true);
+                }}
                 className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg shadow-blue-600/20 flex items-center"
               >
                 <Plus size={16} className="mr-2" /> Bloquear Data
@@ -447,7 +478,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {blockedDates.sort((a, b) => new Date(a.dateString).getTime() - new Date(b.dateString).getTime()).map((block) => (
                     <div key={block.dateString} className="bg-white border border-slate-200 rounded-3xl p-6 space-y-4 relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
+                        <button 
+                          onClick={() => {
+                            setEditingBlock(block);
+                            setBlockDate(block.dateString);
+                            setBlockReason(block.reason);
+                            setShowBlockModal(true);
+                          }}
+                          className="p-2 bg-amber-50 text-amber-600 rounded-xl hover:bg-amber-100 transition-colors"
+                        >
+                          <RefreshCcw size={16} />
+                        </button>
                         <button 
                           onClick={() => setShowBlockRemoveConfirm(block.dateString)}
                           className="p-2 bg-[var(--color-primary-light)] text-[var(--color-primary)] rounded-xl hover:bg-[var(--color-primary-light)] transition-colors"
@@ -633,12 +675,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
 
             <div className="p-8 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-              <button 
-                onClick={() => setShowDeleteConfirm(selectedBooking.id)}
-                className="text-slate-400 hover:text-[var(--color-primary)] text-[10px] font-black uppercase tracking-widest flex items-center"
-              >
-                <Trash2 size={14} className="mr-2" /> Excluir Registro
-              </button>
+              <div className="flex items-center space-x-4">
+                <button 
+                  onClick={() => setShowDeleteConfirm(selectedBooking.id)}
+                  className="text-slate-400 hover:text-[var(--color-primary)] text-[10px] font-black uppercase tracking-widest flex items-center"
+                >
+                  <Trash2 size={14} className="mr-2" /> Excluir Registro
+                </button>
+                <button 
+                  onClick={copyToWhatsApp}
+                  className="text-green-600 hover:text-green-700 text-[10px] font-black uppercase tracking-widest flex items-center bg-green-50 px-4 py-2 rounded-xl border border-green-100 transition-all active:scale-95"
+                >
+                  <MessageSquare size={14} className="mr-2" /> Copiar WhatsApp
+                </button>
+              </div>
               
               <div className="flex space-x-3">
                 {selectedBooking.status === 'pending' && (
@@ -856,11 +906,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="bg-amber-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto text-amber-600 mb-4">
                 <CalendarX size={32} />
               </div>
-              <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Bloquear Data</h3>
-              <p className="text-xs text-slate-400 font-medium">Impeça novos agendamentos para um dia específico.</p>
+              <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">
+                {editingBlock ? 'Editar Bloqueio' : 'Bloquear Data'}
+              </h3>
+              <p className="text-xs text-slate-400 font-medium">
+                {editingBlock ? 'Atualize as informações do bloqueio selecionado.' : 'Impeça novos agendamentos para um dia específico.'}
+              </p>
             </div>
 
-            <form onSubmit={handleAddBlock} className="space-y-4">
+            <form onSubmit={handleSaveBlock} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Data do Bloqueio</label>
                 <input 
@@ -888,7 +942,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="flex space-x-3 pt-4">
                 <button 
                   type="button"
-                  onClick={() => { setShowBlockModal(false); setBlockReason(''); }}
+                  onClick={() => { setShowBlockModal(false); setEditingBlock(null); setBlockReason(''); }}
                   className="flex-1 py-4 border-2 border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all"
                 >
                   Cancelar
@@ -897,7 +951,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   type="submit"
                   className="flex-1 py-4 bg-amber-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-700 shadow-xl shadow-amber-600/20 transition-all"
                 >
-                  Confirmar Bloqueio
+                  {editingBlock ? 'Salvar Alterações' : 'Confirmar Bloqueio'}
                 </button>
               </div>
             </form>

@@ -24,7 +24,8 @@
         "status": { "type": "string", "enum": ["pending", "confirmed", "rejected"] },
         "rejectionReason": { "type": "string" },
         "rejectionDetails": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["dateString", "slot", "responsibleName", "institutionName", "email", "turma", "quantity", "objective", "status", "createdAt"]
     },

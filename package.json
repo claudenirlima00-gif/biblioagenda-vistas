@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
+    "@google/genai": "^1.48.0",
     "date-fns": "^4.1.0",
     "firebase": "^12.11.0",
     "lucide-react": "^0.562.0",
