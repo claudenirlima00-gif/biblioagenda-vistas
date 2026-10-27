@@ -15,33 +15,13 @@ const EMAILJS_TEMPLATE_ADMIN_ID = "template_jesqp2k"; // Resposta da Biblioteca
 const EMAILJS_TEMPLATE_USER_ID = "template_he4tp65"; // Solicitação Recebida
 const EMAILJS_PUBLIC_KEY = "8EJ2mcLgNsLIuqClY";
 
-export const getPublicAppUrl = (): string => {
-  if (typeof window === 'undefined') return '';
-  const storedUrl = localStorage.getItem('biblio_public_url');
-  if (storedUrl && storedUrl.trim()) {
-    return storedUrl.trim().replace(/\/+$/, '');
-  }
-  const envUrl = (import.meta as any).env?.VITE_PUBLIC_APP_URL;
-  if (envUrl && envUrl.trim()) {
-    return envUrl.trim().replace(/\/+$/, '');
-  }
-  return window.location.origin;
-};
-
-export const setPublicAppUrl = (url: string) => {
-  if (typeof window !== 'undefined') {
-    if (url && url.trim()) {
-      localStorage.setItem('biblio_public_url', url.trim());
-    } else {
-      localStorage.removeItem('biblio_public_url');
-    }
-  }
-};
+const PRODUCTION_APP_URL = "https://biblioagenda-vistas.vercel.app";
 
 export const sendBookingEmail = async (to: string, status: 'pending' | 'confirmed' | 'rejected', details?: { id?: string, responsibleName?: string, institutionName?: string, reason?: string, date?: string, time?: string, details?: string }) => {
   const libraryEmail = "biblioteca@sobral.ce.gov.br";
-  const baseUrl = getPublicAppUrl();
-  const rescheduleUrl = details?.id ? `${baseUrl}/?reschedule=${details.id}` : "";
+  // Usar sempre a URL oficial de produção no Vercel para todos os e-mails
+  const baseUrl = PRODUCTION_APP_URL;
+  const rescheduleUrl = details?.id ? `${baseUrl}/?reschedule=${details.id}` : `${baseUrl}/`;
   
   const statusLabel = status === 'confirmed' ? "CONFIRMADA" : status === 'rejected' ? "REJEITADA" : "RECEBIDA (AGUARDANDO CONFIRMAÇÃO)";
   const statusColor = status === 'confirmed' ? "#059669" : status === 'rejected' ? "#1e40af" : "#2563eb";
@@ -65,9 +45,9 @@ export const sendBookingEmail = async (to: string, status: 'pending' | 'confirme
       {
         to_email: to,
         reschedule_url: rescheduleUrl,
-        booking_id: details?.id || '',
-        id: details?.id || '',
-        protocolo: details?.id ? details.id.substring(0, 8).toUpperCase() : '',
+        RESCHEDULE_URL: rescheduleUrl,
+        app_url: baseUrl,
+        link: rescheduleUrl,
         // Versões em CamelCase (minha sugestão inicial)
         responsibleName: details?.responsibleName || 'Responsável',
         institutionName: details?.institutionName || 'Instituição',
