@@ -110,8 +110,10 @@ const Calendar: React.FC<CalendarProps> = ({ onSelectDate, selectedDate, booking
       for (let i = 0; i < 7; i++) {
         const formattedDate = format(day, 'd');
         const cloneDay = day;
+        const minBookingDate = addDays(today, 2);
+        const isTooSoon = isBefore(day, minBookingDate);
         const blockedReason = getBlockedReason(day);
-        const isDisabled = isWeekend(day) || isHoliday(day) || isBefore(day, today) || !!blockedReason;
+        const isDisabled = isWeekend(day) || isHoliday(day) || isTooSoon || !!blockedReason;
         const holidayName = getHolidayName(day);
         const confirmedCount = getConfirmedBookingsCount(day);
 

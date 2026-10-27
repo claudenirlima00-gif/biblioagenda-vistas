@@ -328,7 +328,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (activeTab === 'rejected') return b.status === 'rejected';
     
     return false;
-  }).sort((a, b) => new Date(a.dateString).getTime() - new Date(b.dateString).getTime());
+  }).sort((a, b) => {
+    if (activeTab === 'history') {
+      return new Date(b.dateString).getTime() - new Date(a.dateString).getTime();
+    }
+    return new Date(a.dateString).getTime() - new Date(b.dateString).getTime();
+  });
 
   const getTabLabel = (tab: AdminTab) => {
     switch (tab) {

@@ -396,6 +396,7 @@ const App: React.FC = () => {
             date={selectedDate || new Date()} 
             rescheduleBookingId={rescheduleId || undefined}
             existingBookings={allBookings}
+            blockedDates={blockedDates}
             onClose={() => { setShowDialog(false); setSelectedDate(null); setRescheduleId(null); }}
             onComplete={() => { setShowDialog(false); setSelectedDate(null); setRescheduleId(null); }}
           />
