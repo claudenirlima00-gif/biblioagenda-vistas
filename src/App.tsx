@@ -4,7 +4,9 @@ import Calendar from './components/Calendar';
 import BookingDialog from './components/BookingDialog';
 import AdminDashboard from './components/AdminDashboard';
 import { BookingData, BlockedDate } from './types';
-import { BookOpen, MapPin, Mail, Sparkles, Clock, Users, AlertCircle, Lock, ShieldCheck, ChevronLeft, Loader2, UserPlus, GraduationCap } from 'lucide-react';
+import { BookOpen, MapPin, Mail, Sparkles, Clock, Users, AlertCircle, Lock, ShieldCheck, ChevronLeft, Loader2, UserPlus, GraduationCap, Search, Calendar as CalendarIcon, CheckCircle2, XCircle, X } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { db, auth } from './firebase';
 import { collection, onSnapshot, query, orderBy, getDoc, doc } from 'firebase/firestore';
 import { 
@@ -33,6 +35,28 @@ const App: React.FC = () => {
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
+
+  // Consulta e remarcação direta no site
+  const [showLookupModal, setShowLookupModal] = useState(false);
+  const [lookupQuery, setLookupQuery] = useState('');
+  const [lookupResults, setLookupResults] = useState<BookingData[] | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  const handleLookupSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = lookupQuery.trim().toLowerCase();
+    if (!q) return;
+
+    const matches = allBookings.filter(b => {
+      const matchId = b.id?.toLowerCase().includes(q);
+      const matchEmail = b.email?.toLowerCase().includes(q);
+      const matchResponsible = b.responsibleName?.toLowerCase().includes(q);
+      return matchId || matchEmail || matchResponsible;
+    });
+
+    setLookupResults(matches);
+    setHasSearched(true);
+  };
 
   useEffect(() => {
     // Verificar se há um pedido de remarcação na URL
@@ -301,19 +325,34 @@ const App: React.FC = () => {
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Lustosa da Costa</span>
             </div>
           </div>
-          <button 
-            onClick={() => {
-              if (user && isAdminUser) {
-                setView('admin');
-              } else {
-                setView('admin-login');
-              }
-            }}
-            className="group flex items-center space-x-3 bg-slate-50 hover:bg-[var(--color-primary)] px-5 py-2.5 rounded-xl transition-all border border-slate-100"
-          >
-            <Lock size={14} className="text-[var(--color-primary)] group-hover:text-white transition-colors" /> 
-            <span className="text-[10px] font-black text-slate-400 group-hover:text-white uppercase tracking-widest">Acesso Equipe</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            <button 
+              onClick={() => {
+                setLookupQuery('');
+                setLookupResults(null);
+                setHasSearched(false);
+                setShowLookupModal(true);
+              }}
+              className="group flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 px-4 py-2.5 rounded-xl transition-all border border-slate-200 text-slate-700"
+              title="Consultar status de agendamento ou alterar data e horário"
+            >
+              <Search size={14} className="text-[var(--color-primary)]" />
+              <span className="text-[10px] font-black uppercase tracking-widest">Consultar / Remarcar</span>
+            </button>
+            <button 
+              onClick={() => {
+                if (user && isAdminUser) {
+                  setView('admin');
+                } else {
+                  setView('admin-login');
+                }
+              }}
+              className="group flex items-center space-x-2 bg-slate-50 hover:bg-[var(--color-primary)] px-4 py-2.5 rounded-xl transition-all border border-slate-100"
+            >
+              <Lock size={14} className="text-[var(--color-primary)] group-hover:text-white transition-colors" /> 
+              <span className="text-[10px] font-black text-slate-400 group-hover:text-white uppercase tracking-widest">Acesso Equipe</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -325,6 +364,20 @@ const App: React.FC = () => {
             Abra as portas do conhecimento para seus alunos. <br/>
             Selecione uma data no calendário abaixo para iniciar sua solicitação.
           </p>
+          <div className="pt-2 flex justify-center">
+            <button 
+              onClick={() => {
+                setLookupQuery('');
+                setLookupResults(null);
+                setHasSearched(false);
+                setShowLookupModal(true);
+              }}
+              className="inline-flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 text-slate-700 px-5 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all border border-slate-200/90 shadow-sm active:scale-95"
+            >
+              <Search size={15} className="text-[var(--color-primary)]" />
+              <span>Já tem uma solicitação? Clique aqui para Consultar ou Remarcar</span>
+            </button>
+          </div>
         </div>
       </section>
 
@@ -389,6 +442,131 @@ const App: React.FC = () => {
           <p className="text-[10px] font-black opacity-30 uppercase tracking-[0.2em]">© {new Date().getFullYear()} Biblioteca Municipal de Sobral Lustosa da Costa</p>
         </div>
       </footer>
+
+      {/* Modal de Consulta e Remarcação */}
+      {showLookupModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <div className="flex items-center space-x-3">
+                <div className="bg-[var(--color-primary)] p-2.5 rounded-xl text-white">
+                  <Search size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-800 uppercase tracking-tighter">Consultar Agendamento</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sobral Lustosa da Costa</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowLookupModal(false)}
+                className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-6">
+              <form onSubmit={handleLookupSearch} className="space-y-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
+                  Informe o Código do Agendamento (ID) ou seu E-mail
+                </label>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    value={lookupQuery}
+                    onChange={(e) => setLookupQuery(e.target.value)}
+                    placeholder="Ex: 8Xf9... ou seu@email.com"
+                    className="flex-grow px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[var(--color-primary)] outline-none transition-all font-medium text-sm"
+                    autoFocus
+                  />
+                  <button 
+                    type="submit" 
+                    className="px-6 py-3 bg-[var(--color-primary)] text-white font-black uppercase tracking-widest text-xs rounded-xl hover:bg-slate-900 transition-all shadow-md active:scale-95"
+                  >
+                    Buscar
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-400">
+                  O código do agendamento foi informado no e-mail recebido ou na tela de confirmação.
+                </p>
+              </form>
+
+              {hasSearched && (
+                <div className="space-y-4 pt-2 border-t border-slate-100">
+                  {lookupResults && lookupResults.length > 0 ? (
+                    lookupResults.map(booking => {
+                      const isRejected = booking.status === 'rejected';
+                      const isConfirmed = booking.status === 'confirmed';
+                      const isPending = booking.status === 'pending';
+
+                      return (
+                        <div key={booking.id} className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
+                          <div className="flex items-center justify-between">
+                            <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center ${
+                              isConfirmed ? 'bg-green-100 text-green-700' : 
+                              isRejected ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                            }`}>
+                              {isConfirmed && <CheckCircle2 size={10} className="mr-1" />}
+                              {isRejected && <XCircle size={10} className="mr-1" />}
+                              {isPending && <Clock size={10} className="mr-1" />}
+                              {isConfirmed ? 'Confirmada' : isRejected ? 'Rejeitada' : 'Aguardando Análise'}
+                            </span>
+                            <span className="text-[9px] font-mono text-slate-400 uppercase">
+                              ID: {booking.id.substring(0, 8)}
+                            </span>
+                          </div>
+
+                          <div className="space-y-1">
+                            <p className="text-sm font-black text-slate-800">{booking.institutionName}</p>
+                            <p className="text-xs text-slate-500 font-medium">{booking.responsibleName} • {booking.email}</p>
+                            <p className="text-xs font-bold text-[var(--color-primary)]">
+                              {format(new Date(booking.dateString + 'T12:00:00'), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })} às {booking.slot?.start}
+                            </p>
+                          </div>
+
+                          {isRejected ? (
+                            <div className="text-xs text-red-700 bg-red-50 p-3 rounded-xl border border-red-100">
+                              <p className="font-bold">Motivo: {booking.rejectionReason}</p>
+                              {booking.rejectionDetails && <p className="mt-1">{booking.rejectionDetails}</p>}
+                              <p className="mt-2 text-[10px] text-slate-500">Para agendar outra data, selecione um novo dia diretamente no calendário da página inicial.</p>
+                            </div>
+                          ) : (
+                            <button 
+                              onClick={() => {
+                                setShowLookupModal(false);
+                                setRescheduleId(booking.id);
+                              }}
+                              className="w-full py-3 bg-[var(--color-primary)] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-md active:scale-95 flex items-center justify-center space-x-2"
+                            >
+                              <CalendarIcon size={14} />
+                              <span>📅 Alterar Data ou Horário</span>
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-8 text-slate-400 space-y-2">
+                      <AlertCircle size={32} className="mx-auto opacity-40 text-amber-500" />
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-600">Nenhum agendamento encontrado</p>
+                      <p className="text-xs text-slate-400">Verifique se o código ou o e-mail digitado está exatamente correto.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
+              <button 
+                onClick={() => setShowLookupModal(false)}
+                className="text-xs font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       { (showDialog || rescheduleId) && (
         <ErrorBoundary>

@@ -36,8 +36,13 @@ import {
   Plus,
   Loader2,
   UserPlus,
-  ShieldAlert
+  ShieldAlert,
+  Globe,
+  Settings,
+  Link,
+  Copy
 } from 'lucide-react';
+import { getPublicAppUrl, setPublicAppUrl } from '../services/emailService';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -81,6 +86,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [newUserRole, setNewUserRole] = useState<'admin' | 'staff'>('staff');
+
+  // State for public app URL configuration
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [publicUrlInput, setPublicUrlInput] = useState(getPublicAppUrl());
+
+  const handleSavePublicUrl = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPublicAppUrl(publicUrlInput);
+    setShowSettingsModal(false);
+    setFeedbackMessage({ text: "URL pública do sistema salva com sucesso!", type: 'success' });
+  };
 
   const currentUserEmail = auth.currentUser?.email;
   const isMasterAdmin = currentUserEmail === 'claudenir.lima00@gmail.com';
@@ -417,7 +433,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             )}
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
+            <button 
+              onClick={() => {
+                setPublicUrlInput(getPublicAppUrl());
+                setShowSettingsModal(true);
+              }}
+              className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center border border-slate-200"
+              title="Configurar URL pública usada nos botões de remarcação enviados por e-mail"
+            >
+              <Globe size={14} className="mr-1.5 text-[var(--color-primary)]" />
+              URL Pública
+            </button>
+
             {activeTab === 'blocked' && (
               <button 
                 onClick={() => {
@@ -442,6 +470,26 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             )}
           </div>
         </header>
+
+        {window.location.origin.includes('ais-dev-') && !localStorage.getItem('biblio_public_url') && (
+          <div className="mx-10 mt-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start justify-between gap-4 text-amber-800">
+            <div className="flex items-start space-x-3">
+              <AlertTriangle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="text-xs">
+                <p className="font-black uppercase tracking-wider mb-0.5">Aviso de Ambiente de Desenvolvimento</p>
+                <p className="font-medium text-amber-700 leading-relaxed">
+                  O painel está sendo executado no ambiente restrito do AI Studio (<code className="bg-amber-100 px-1 py-0.5 rounded text-[11px]">ais-dev-...</code>). Links de remarcação enviados por e-mail geram a página "403 Você não tem acesso a esta página" para quem não tiver acesso à conta Google do editor. Ao publicar sua aplicação, informe a URL pública no botão <strong>"URL Pública"</strong> acima.
+                </p>
+              </div>
+            </div>
+            <button 
+              onClick={() => { setPublicUrlInput(getPublicAppUrl()); setShowSettingsModal(true); }}
+              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex-shrink-0 transition-colors"
+            >
+              Configurar URL
+            </button>
+          </div>
+        )}
 
         <main className="p-10">
           <div className="space-y-6">
@@ -687,6 +735,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 >
                   <Trash2 size={14} className="mr-2" /> Excluir Registro
                 </button>
+                {selectedBooking.status !== 'rejected' && (
+                  <button 
+                    onClick={() => {
+                      const url = `${getPublicAppUrl()}/?reschedule=${selectedBooking.id}`;
+                      navigator.clipboard.writeText(url);
+                      setFeedbackMessage({ text: "Link de remarcação copiado!", type: 'success' });
+                    }}
+                    className="text-blue-600 hover:text-blue-700 text-[10px] font-black uppercase tracking-widest flex items-center bg-blue-50 px-3 py-2 rounded-xl border border-blue-100 transition-all active:scale-95"
+                    title="Copiar link direto para remarcar esta visita"
+                  >
+                    <Link size={14} className="mr-1.5" /> Link de Remarcação
+                  </button>
+                )}
                 {selectedBooking.status === 'confirmed' && (
                   <button 
                     onClick={copyToWhatsApp}
@@ -1016,6 +1077,78 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 Desbloquear
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Public URL Configuration Modal */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
+          <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl p-8 space-y-6 animate-in slide-in-from-bottom duration-300">
+            <div className="text-center space-y-2">
+              <div className="bg-[var(--color-primary-light)] w-16 h-16 rounded-2xl flex items-center justify-center mx-auto text-[var(--color-primary)] mb-2">
+                <Globe size={32} />
+              </div>
+              <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">URL Pública do Sistema</h3>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                Esta URL é inserida no botão <strong>"📅 Alterar Data ou Horário"</strong> enviado aos solicitantes por e-mail.
+              </p>
+            </div>
+
+            <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-amber-800 text-xs space-y-2">
+              <p className="font-bold flex items-center">
+                <AlertTriangle size={14} className="mr-1.5 flex-shrink-0 text-amber-600" />
+                Por que ocorria o erro "403 Você não tem acesso a esta página"?
+              </p>
+              <p className="leading-relaxed text-[11px] text-amber-700 font-medium">
+                No ambiente do AI Studio (<code className="bg-amber-100 px-1 py-0.5 rounded">ais-dev-...</code>), a página é restrita à conta do desenvolvedor. Quando um solicitante clica no link do e-mail, o Google bloqueia o acesso externo com o erro 403.
+              </p>
+              <p className="leading-relaxed text-[11px] text-amber-700 font-medium">
+                Ao publicar o site em um domínio próprio, no Firebase Hosting ou em link público, informe a URL abaixo para que os e-mails usem o endereço acessível a todos.
+              </p>
+            </div>
+
+            <form onSubmit={handleSavePublicUrl} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">URL Base Pública</label>
+                <input 
+                  type="url" 
+                  value={publicUrlInput} 
+                  onChange={(e) => setPublicUrlInput(e.target.value)}
+                  placeholder="https://sua-biblioteca.web.app ou https://meu-dominio.com"
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[var(--color-primary)] outline-none transition-all font-bold text-sm text-slate-800"
+                />
+                <p className="text-[10px] text-slate-400">
+                  URL atual detectada: <code className="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-[10px]">{window.location.origin}</code>
+                </p>
+              </div>
+
+              <div className="flex space-x-3 pt-2">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setPublicUrlInput(window.location.origin);
+                  }}
+                  className="px-4 py-3 border-2 border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-all"
+                  title="Usar o endereço do navegador atual"
+                >
+                  Usar Padrão
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setShowSettingsModal(false)}
+                  className="px-4 py-3 border-2 border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 py-3 bg-[var(--color-primary)] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-blue-600/20 transition-all font-black"
+                >
+                  Salvar URL
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

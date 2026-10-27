@@ -67,14 +67,17 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
             if (data.slot) {
               setSelectedSlot(data.slot);
             }
+            if (data.status === 'rejected') {
+              setError("Esta solicitação foi rejeitada pela equipe e não pode ser remarcada. Por favor, faça um novo agendamento escolhendo uma data no calendário.");
+            }
             setStep('slot');
           } else {
-            setError("Agendamento não encontrado para remarcação.");
+            setError("Agendamento não encontrado para remarcação. Verifique se o código ou link está correto.");
             setStep('slot');
           }
         } catch (err) {
           console.error("Erro ao carregar agendamento:", err);
-          setError("Erro ao carregar dados do agendamento.");
+          setError("Erro ao carregar dados do agendamento. Verifique sua conexão com a internet.");
           setStep('slot');
         }
       };
@@ -151,19 +154,10 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
     try {
       const isDateChanged = originalBooking && originalBooking.dateString !== activeDateString;
       
-      // Se a data mudou e a solicitação já estava confirmada, volta para 'pending'
-      // Se ainda não estava confirmada (pending), permanece 'pending' com a nova data
-      let newStatus: 'pending' | 'confirmed' | 'rejected' = 'pending';
-      if (rescheduleBookingId && originalBooking) {
-        if (isDateChanged && originalBooking.status === 'confirmed') {
-          newStatus = 'pending';
-        } else if (!isDateChanged) {
-          // Se não mudou a data, mas mudou horário ou dados, mantém o status original ou reavalia
-          newStatus = originalBooking.status;
-        } else {
-          newStatus = 'pending';
-        }
-      }
+      // Toda remarcação/alteração realizada pelo solicitante volta para 'pending' (Aba Aguardando)
+      // para que a equipe da biblioteca analise e confirme a nova data e horário.
+      // Além disso, as regras de segurança do Firestore exigem status == 'pending' para remarcações públicas.
+      const newStatus: 'pending' | 'confirmed' | 'rejected' = 'pending';
 
       const bookingData = {
         dateString: activeDateString,
@@ -361,7 +355,10 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center"><Mail size={12} className="mr-1" /> E-mail de Confirmação</label>
-                  <input required disabled={isSubmitting} type="email" value={formData.email} onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))} className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[var(--color-primary)] outline-none transition-all font-medium" placeholder="exemplo@email.com" />
+                  <input required disabled={isSubmitting || !!rescheduleBookingId} type="email" value={formData.email} onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))} className={`w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-[var(--color-primary)] outline-none transition-all font-medium ${rescheduleBookingId ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`} placeholder="exemplo@email.com" />
+                  {rescheduleBookingId && (
+                    <p className="text-[9px] text-slate-400 font-medium">O e-mail original da solicitação não pode ser alterado durante a remarcação.</p>
+                  )}
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center"><GraduationCap size={12} className="mr-1" /> Turma / Nível</label>
