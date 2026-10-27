@@ -17,10 +17,31 @@ const EMAILJS_PUBLIC_KEY = "8EJ2mcLgNsLIuqClY";
 
 const PRODUCTION_APP_URL = "https://biblioagenda-vistas.vercel.app";
 
+export const getPublicAppUrl = (): string => {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem('biblio_public_url');
+    if (saved && saved.trim()) {
+      return saved.trim().replace(/\/+$/, '');
+    }
+  }
+  return PRODUCTION_APP_URL;
+};
+
+export const setPublicAppUrl = (url: string): void => {
+  if (typeof window !== 'undefined') {
+    const clean = url.trim().replace(/\/+$/, '');
+    if (clean) {
+      localStorage.setItem('biblio_public_url', clean);
+    } else {
+      localStorage.removeItem('biblio_public_url');
+    }
+  }
+};
+
 export const sendBookingEmail = async (to: string, status: 'pending' | 'confirmed' | 'rejected', details?: { id?: string, responsibleName?: string, institutionName?: string, reason?: string, date?: string, time?: string, details?: string }) => {
   const libraryEmail = "biblioteca@sobral.ce.gov.br";
   // Usar sempre a URL oficial de produção no Vercel para todos os e-mails
-  const baseUrl = PRODUCTION_APP_URL;
+  const baseUrl = getPublicAppUrl();
   const rescheduleUrl = details?.id ? `${baseUrl}/?reschedule=${details.id}` : `${baseUrl}/`;
   
   const statusLabel = status === 'confirmed' ? "CONFIRMADA" : status === 'rejected' ? "REJEITADA" : "RECEBIDA (AGUARDANDO CONFIRMAÇÃO)";
